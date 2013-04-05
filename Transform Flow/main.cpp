@@ -20,10 +20,10 @@
 #include <Dream/Events/Logger.h>
 
 #include <Dream/Client/Graphics/MeshBuffer.h>
-#include <Dream/Client/Graphics/PixelBufferRenderer.h>
+#include <Dream/Client/Graphics/ImageRenderer.h>
 #include <Dream/Client/Graphics/WireframeRenderer.h>
 
-#include <Dream/Geometry/Generate/Planar.h>
+#include <Euclid/Geometry/Generate/Planar.h>
 
 #include "VideoStream.h"
 #include "VideoStreamRenderer.h"
@@ -35,6 +35,7 @@ namespace TransformFlow {
 	using namespace Dream::Renderer;
 	using namespace Dream::Client::Display;
 	using namespace Dream::Client::Graphics;
+	using namespace Euclid;
 		
 	class ImageSequenceScene : public Scene
 	{
@@ -53,7 +54,7 @@ namespace TransformFlow {
 				
 		Ref<ShaderManager> _shader_manager;
 		Ref<TextureManager> _texture_manager;
-		Ref<PixelBufferRenderer> _pixel_buffer_renderer;
+		Ref<ImageRenderer> _pixel_buffer_renderer;
 		
 		Ref<WireframeRenderer> _wireframe_renderer;
 		Ref<Program> _wireframe_program;
@@ -141,7 +142,7 @@ namespace TransformFlow {
 		
 		_shader_manager = new ShaderManager;
 		_texture_manager = new TextureManager;
-		_pixel_buffer_renderer = new PixelBufferRenderer(_texture_manager);
+		_pixel_buffer_renderer = new ImageRenderer(_texture_manager);
 		
 		TextureParameters parameters;
 		parameters.generate_mip_maps = true;
@@ -310,7 +311,7 @@ namespace TransformFlow {
 	class TransformFlowApplicationDelegate : public Object, implements IApplicationDelegate
 	{
 		protected:
-			Ref<Context> _context;
+			Ref<IContext> _context;
 		
 			virtual ~TransformFlowApplicationDelegate ();
 			virtual void application_did_finish_launching (IApplication * application);
@@ -333,7 +334,8 @@ namespace TransformFlow {
 		Ref<SceneManager> scene_manager = new SceneManager(_context, thread->loop(), loader);
 		
 		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/Test");
-		Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/VideoStream-2012-01-30-16-27-19");
+
+		Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/VideoStream-2012-01-30-16-27-19");
 		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/VideoStream-2012-02-17-02-01-01");
 		
 		Ref<VideoStream> video_stream = new VideoStream(data_path);

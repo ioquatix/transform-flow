@@ -9,6 +9,7 @@
 #include "FeatureAlgorithm.h"
 
 #include <Dream/Events/Logger.h>
+#include <Euclid/Numerics/Matrix.IO.h>
 
 namespace TransformFlow {
 	using namespace Dream::Events::Logging;
@@ -29,10 +30,10 @@ namespace TransformFlow {
 		_matcher->match(query, train, matches);
 	}
 
-	static void convert_to_greyscale(Ref<IPixelBuffer> pixel_buffer, cv::Mat & output) {
+	static void convert_to_greyscale(Ref<Image> pixel_buffer, cv::Mat & output) {
 		Vec3u size = pixel_buffer->size();
 		
-		cv::Mat color_frame(size[Y], size[X], CV_8UC4, (void*)pixel_buffer->pixel_data());
+		cv::Mat color_frame(size[Y], size[X], CV_8UC4, (void*)pixel_buffer->data());
 
 		output = cv::Mat(size[Y], size[X], CV_8UC1);
 		cv::cvtColor(color_frame, output, CV_RGB2GRAY);
@@ -41,8 +42,8 @@ namespace TransformFlow {
 	Vec2 MatchingAlgorithm::calculate_local_translation(ImageUpdate & initial, ImageUpdate & next) {
 		Vec3u size = initial.image_buffer->size();
 		
-		cv::Mat initial_frame(size[Y], size[X], CV_8UC4, (void*)initial.image_buffer->pixel_data());
-		cv::Mat next_frame(size[Y], size[X], CV_8UC4, (void*)next.image_buffer->pixel_data());
+		cv::Mat initial_frame(size[Y], size[X], CV_8UC4, (void*)initial.image_buffer->data());
+		cv::Mat next_frame(size[Y], size[X], CV_8UC4, (void*)next.image_buffer->data());
 
 		std::clock_t start_time = std::clock();
 		std::vector<cv::KeyPoint> initial_keypoints;
@@ -119,10 +120,9 @@ namespace TransformFlow {
 		//cv::decomposeProjectionMatrix(homography, camera_matrix, rotation_matrix, translation_matrix);
 
 		//Mat33 rotation(homography.ptr<float>());
-		Mat33 rotation(fundamental_matrix.ptr<float>());
+		Mat33 rotation = *fundamental_matrix.ptr<float>();
 
-		Mat44 transform(IDENTITY);
-		transform.set(rotation);
+		Mat44 transform = rotation;
 
 		logger()->log(LOG_DEBUG, LogBuffer() << "Transform: " << std::endl << transform);
 

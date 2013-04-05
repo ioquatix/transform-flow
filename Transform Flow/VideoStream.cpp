@@ -8,7 +8,9 @@
 
 #include "VideoStream.h"
 #include <Dream/Core/Data.h>
-#include <Dream/Numerics/Interpolate.h>
+
+#include <Euclid/Numerics/Interpolate.h>
+#include <Euclid/Numerics/Transforms.h>
 
 namespace TransformFlow {
 	using namespace Dream::Events::Logging;
@@ -28,7 +30,7 @@ namespace TransformFlow {
 		
 	}
 	
-	Ref<IPixelBuffer> VideoStream::frame_for_index(IndexT index) {
+	Ref<Image> VideoStream::frame_for_index(std::size_t index) {
 		if (index < _images.size()) {
 			if (_frames[index]) {
 				return _frames[index];
@@ -38,7 +40,7 @@ namespace TransformFlow {
 		}
 		
 		logger()->log(LOG_DEBUG, LogBuffer() << "Loading frame " << index);
-		return (_frames[index] = _loader->load<IPixelBuffer>(to_string(index)));
+		return (_frames[index] = _loader->load<Image>(to_string(index)));
 	}
 	
 	void VideoStream::parse_log() {
@@ -77,7 +79,7 @@ namespace TransformFlow {
 			} else if (parts.at(1) == FRAME) {
 				ImageUpdate update;
 				update.time_offset = to<RealT>(parts.at(3));
-				update.image_buffer = frame_for_index(to<IndexT>(parts.at(2)));
+				update.image_buffer = frame_for_index(to<std::size_t>(parts.at(2)));
 				_images.push_back(update);				
 			} else {
 				logger()->log(LOG_WARN, LogBuffer() << "Unexpected line: " << line);
@@ -131,13 +133,18 @@ namespace TransformFlow {
 				
 				Vec3 result = linear_interpolate(offset / duration, _gravity[i-1].gravity, _gravity[i].gravity);
 
-				return result.normalized_vector();
+				return result.normalize();
 			}
 		}
 		
 		return ZERO;
 	}
-	
+
+	static Quat from_euler(Vec3 angles) {
+		return rotate<X>(radians(angles[X])) << rotate<Y>(radians(angles[Y])) << rotate<Z>(radians(angles[Z]));
+		//return Quat(radians(angles[X]), Vec3(1,0,0)) * Quat(radians(angles[Y]), Vec3(0,1,0)) * Quat(radians(angles[Z]), Vec3(0,0,1));
+	}
+
 	Quat VideoStream::rotation_between(RealT start_time, RealT end_time) {
 		// We need to find the first gyroscope update to work from:
 		std::size_t first = 1;
@@ -153,7 +160,7 @@ namespace TransformFlow {
 		
 		for (std::size_t i = first; i < _gyroscope.size(); i += 1) {
 			RealT dt = _gyroscope[i].time_offset - _gyroscope[i-1].time_offset;
-			total *= Quat::from_euler(_gyroscope[i].rotation * dt);
+			total *= from_euler(_gyroscope[i].rotation * dt);
 			
 			if (_gyroscope[i].time_offset > end_time)
 				break;

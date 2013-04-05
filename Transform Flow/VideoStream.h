@@ -10,8 +10,8 @@
 #define _TRANSFORM_FLOW_VIDEO_STREAM_H
 
 #include <Dream/Resources/Loader.h>
-#include <Dream/Numerics/Vector.h>
-#include <Dream/Numerics/Quaternion.h>
+#include <Euclid/Numerics/Vector.h>
+#include <Euclid/Numerics/Quaternion.h>
 #include <Dream/Imaging/Image.h>
 
 #include "FeaturePoints.h"
@@ -19,7 +19,7 @@
 namespace TransformFlow {
 	using namespace Dream;
 	using namespace Dream::Core;
-	using namespace Dream::Numerics;
+	using namespace Euclid::Numerics;
 	using namespace Dream::Imaging;
 	
 	struct GyroscopeUpdate {
@@ -41,7 +41,7 @@ namespace TransformFlow {
 	
 	struct ImageUpdate {
 		RealT time_offset;
-		Ref<IPixelBuffer> image_buffer;
+		Ref<Image> image_buffer;
 		
 		Ref<FeaturePoints> feature_points;
 		
@@ -56,8 +56,8 @@ namespace TransformFlow {
 	protected:
 		Ref<Resources::Loader> _loader;
 		
-		std::vector<Ref<IPixelBuffer>> _frames;
-		Ref<IPixelBuffer> frame_for_index(IndexT index);
+		std::vector<Ref<Image>> _frames;
+		Ref<Image> frame_for_index(std::size_t index);
 		
 		void parse_log();
 		
@@ -68,7 +68,7 @@ namespace TransformFlow {
 		
 	public:		
 		VideoStream(const Path & path);
-		virtual ~VideoStream();
+		virtual ~VideoStream() noexcept;
 		
 		void debug();
 		

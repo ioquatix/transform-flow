@@ -13,7 +13,7 @@
 
 namespace TransformFlow {
 
-	std::vector<Vec2> find_key_points(Ptr<IPixelBuffer> pixel_buffer);
+	std::vector<Vec2> find_key_points(Ptr<Image> pixel_buffer);
 
 }
 

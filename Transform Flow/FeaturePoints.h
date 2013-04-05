@@ -10,8 +10,8 @@
 #define _TRANSFORM_FLOW_FEATURE_POINTS_H
 
 #include <vector>
-#include <Dream/Imaging/PixelBuffer.h>
-#include <Dream/Numerics/Matrix.h>
+#include <Dream/Imaging/Image.h>
+#include <Euclid/Numerics/Matrix.h>
 
 // Dense optical flow vs Sparse optical flow
 // Look at stereo image processing (correspondence between rectified pairs of images)
@@ -25,7 +25,7 @@ namespace TransformFlow {
 	 */
 	
 	using namespace Dream;
-	using namespace Dream::Numerics;
+	using namespace Euclid::Numerics;
 	using namespace Dream::Imaging;
 	
 	struct FeaturePoint {
@@ -43,15 +43,15 @@ namespace TransformFlow {
 	class FeaturePoints : public Object {
 	protected:
 		std::vector<Vec2> _offsets;
-		Ref<IPixelBuffer> _source;
+		Ref<Image> _source;
 		
-		static void features_along_line(Ptr<IPixelBuffer> image, Vec2i start, Vec2i end, std::vector<Vec2> & features);
+		static void features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features);
 		
 	public:		
 		FeaturePoints();
 		virtual ~FeaturePoints();
 
-		void scan(Ptr<IPixelBuffer> image);
+		void scan(Ptr<Image> image);
 		
 		const std::vector<Vec2> & offsets() const { return _offsets; }
 	};

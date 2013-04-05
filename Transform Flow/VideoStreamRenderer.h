@@ -16,7 +16,7 @@
 
 #include <Dream/Client/Graphics/ShaderManager.h>
 #include <Dream/Client/Graphics/TextureManager.h>
-#include <Dream/Client/Graphics/PixelBufferRenderer.h>
+#include <Dream/Client/Graphics/ImageRenderer.h>
 #include <Dream/Client/Graphics/WireframeRenderer.h>
 #include <Dream/Client/Graphics/Renderer.h>
 
@@ -63,7 +63,7 @@ namespace TransformFlow {
 		
 		Ref<MarkerRenderer> _marker_renderer, _billboard_marker_renderer;
 		Ref<WireframeRenderer> _wireframe_renderer;
-		Ref<PixelBufferRenderer> _pixel_buffer_renderer;
+		Ref<ImageRenderer> _pixel_buffer_renderer;
 		Ref<Program> _frame_program, _wireframe_program;
 		
 		AlignmentMode _alignment_mode;

@@ -21,7 +21,7 @@ namespace TransformFlow {
 	}
 
 	// Bresenham's Line Drawing Algorithm
-	void FeaturePoints::features_along_line(Ptr<IPixelBuffer> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
+	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
 		bool steep = abs(end[Y] - start[Y]) > abs(end[X] - start[X]);
 		
 		if (steep) {
@@ -50,15 +50,18 @@ namespace TransformFlow {
 		//std::size_t maximum_error = (255 * 255) * 3;
 		
 		unsigned step = std::max<unsigned>((end - start).length() / 100, 1);
-		
+
+		auto image_reader = reader(*image);
+
 		for (int x = start[X]; x <= end[X]; x += 1) {
 			if (steep) {
-				offset[0] = vec(y, x);
+				offset[0] = vector(y, x);
 			} else {
-				offset[0] = vec(x, y);
+				offset[0] = vector(x, y);
 			}
-			
-			image->read_pixel(offset[0] << 0, pixel[0]);
+
+			pixel[0] = image_reader[offset[0]];
+			//image->read_pixel(offset[0] << 0, pixel[0]);
 			if (count > 0 && skip == 0) {
 				// Calculate the distance between the two pixels:
 				RealT distance = 0;
@@ -108,7 +111,7 @@ namespace TransformFlow {
 		
 	}
 	
-	void FeaturePoints::scan(Ptr<IPixelBuffer> source) {
+	void FeaturePoints::scan(Ptr<Image> source) {
 		if (_offsets.size()) return;
 		
 		_source = source;
