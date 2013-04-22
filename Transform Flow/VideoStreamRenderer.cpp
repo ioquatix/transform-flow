@@ -187,7 +187,8 @@ namespace TransformFlow {
 			
 			Ptr<Image> image = next->image_update.image_buffer;
 			// TODO: Fix image writer API:
-			//writer(*image)[scan_point] = Vector<3, ByteT>(std::max(255.0 - total, 0.0)));
+			auto intensity = std::max<ByteT>(255 - total, 0);
+			writer(*image).set(scan_point, Vector<3, ByteT>(intensity));
 		}
 		
 		//Vec2 corrected_delta(-50, 5.09367);
@@ -238,7 +239,8 @@ namespace TransformFlow {
 				Vec2i offset = point + (gravity * i);
 				
 				Ptr<Image> image = image_update.image_buffer;
-				//image->write_pixel(offset << 0, Vector<3, ByteT>(255, 0, 0));
+
+				writer(*image).set(offset, Vector<3, ByteT>(255, 0, 0));
 			}
 		}
 	}
