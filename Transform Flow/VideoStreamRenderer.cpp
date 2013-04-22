@@ -202,8 +202,9 @@ namespace TransformFlow {
 			
 			debug_particles->add(global_offset, Vec3(0.1, 0.1, 0.0), Vec3(0, 0, 1.0), Vec2u(0, 0), Vec3(1, 0, 0));
 			
-			//RealT angle = global_coordinate.angle_between(global_offset);
-			//next->feature_transform = Mat44::rotating_matrix(angle, Vec3(0, 1, 0));
+			//auto angle = global_coordinate.angle_between(global_offset);
+			//next->feature_transform = rotate<Y>(angle);
+
 			Vec2 offset = difference / image_box.size();
 			logger()->log(LOG_DEBUG, LogBuffer() << "Offset (Transform Flow): " << offset);
 			next->feature_transform = translate(offset);
@@ -327,7 +328,7 @@ namespace TransformFlow {
 			cache->global_transform = global_transform;
 			
 			if (previous) {
-				cache->local_transform = cache->global_transform * inverse(global_transform);
+				cache->local_transform = inverse(inverse(global_transform) * previous->global_transform);
 			} else {
 				cache->local_transform = cache->global_transform;
 			}
@@ -340,7 +341,7 @@ namespace TransformFlow {
 			_frame_cache.push_back(cache);
 			previous = cache;
 			
-			rotation << frame.rotation;
+			rotation = rotation << frame.rotation;
 			
 			// Setup particles
 			for (Vec2 offset : cache->image_update.feature_points->offsets()) {
@@ -380,15 +381,14 @@ namespace TransformFlow {
 				if (frame->image_update.gravity.equivalent(0))
 					continue;
 				
-				global_transform = frame->local_transform * global_transform;
+				global_transform = global_transform << frame->local_transform;
 				
 				if (_alignment_mode >= FEATURE_ALIGNMENT) {
-					global_transform = global_transform * frame->feature_transform;
+					global_transform = global_transform << frame->feature_transform;
 				}
 				
 				frame->global_transform = global_transform;
 				binding.set_uniform("transform_matrix", frame->global_transform);
-				log_debug("Image transform_matrix =", global_transform);
 				
 				if (offset >= start)
 					_pixel_buffer_renderer->render(frame->image_box, frame->image_update.image_buffer);
@@ -467,7 +467,7 @@ namespace TransformFlow {
 				if (offset == _start) {
 					_marker_renderer->render(frame->marker_particles, frame->global_transform);
 					_billboard_marker_renderer->render(frame->debug_particles, IDENTITY);
-					//_marker_renderer->render(frame->feature_particles, frame->global_transform);
+					_marker_renderer->render(frame->feature_particles, frame->global_transform);
 				}
 				
 				if (offset >= start && --count == 0)
@@ -512,7 +512,7 @@ namespace TransformFlow {
 			
 			Vec3 at;
 			if (offset >= start && frame_plane.intersects_with(object_coordinate.forward, at)) {
-				frame->debug_particles->add(at, Vec3(0.5, 0.5, 0.0), Vec3(0.0, 0.0, -1.0), Vec2u(0, 0), Vec3(0.2, 0.8, 0.3));
+				//frame->debug_particles->add(at, Vec3(0.5, 0.5, 0.0), Vec3(0.0, 0.0, -1.0), Vec2u(0, 0), Vec3(0.2, 0.8, 0.3));
 				
 				std::size_t index = 0;
 				for (auto point : frame->image_update.feature_points->offsets()) {
@@ -592,11 +592,11 @@ namespace TransformFlow {
 
 			Ref<MatchingAlgorithm> matching_algorithm = matchingAlgorithmUsingORB();
 
-			//Mat44 homography = matching_algorithm->calculate_local_transform(frame->image_update, next->image_update);
-			//logger()->log(LOG_DEBUG, LogBuffer() << "Homography: " << std::endl << homography);
-			//next->local_transform = homography;
-			//next->global_transform = homography * frame->global_transform;
-			//next->global_transform = frame->global_transform * homography;
+			Mat44 homography = matching_algorithm->calculate_local_transform(frame->image_update, next->image_update);
+			logger()->log(LOG_DEBUG, LogBuffer() << "Homography: " << std::endl << homography);
+			next->local_transform = homography;
+			next->global_transform = homography * frame->global_transform;
+			next->global_transform = frame->global_transform * homography;
 
 			std::clock_t start = std::clock();
 			Vec2 translation = matching_algorithm->calculate_local_translation(frame->image_update, next->image_update);
