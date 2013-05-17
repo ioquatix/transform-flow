@@ -103,7 +103,7 @@ namespace TransformFlow {
 	
 	Vec3 VideoStreamRenderer::FrameCache::global_coordinate_of_pixel_coordinate(Vec2 point) {
 		// We need to calculate the global positioning of the pixel:
-		Vec2 normalized_point = point / image_update.image_buffer->size().reduce();
+		Vec2 normalized_point = point / image_update.image_buffer->size();
 		Vec2 center = image_box.absolute_position_of(normalized_point);
 		
 		// Calculate the 3d position of the feature by applying the frame's global transform to the image coordinate:
@@ -116,7 +116,7 @@ namespace TransformFlow {
 		Vec3 local_coordinate = inverse(global_transform) * point;
 		
 		Vec2 normalized_point = image_box.relative_offset_of(local_coordinate.reduce());
-		Vec2 pixel_coordinate = normalized_point * image_update.image_buffer->size().reduce();
+		Vec2 pixel_coordinate = normalized_point * image_update.image_buffer->size();
 		
 		return pixel_coordinate;
 	}
@@ -463,7 +463,7 @@ namespace TransformFlow {
 				frame->marker_particles->update(time);
 				frame->debug_particles->update(time);
 				frame->feature_particles->update(time);
-				
+
 				if (offset == _start) {
 					_marker_renderer->render(frame->marker_particles, frame->global_transform);
 					_billboard_marker_renderer->render(frame->debug_particles, IDENTITY);
@@ -481,6 +481,7 @@ namespace TransformFlow {
 		}
 
 		{
+			std::size_t start = _start, count = _count, offset = 0;
 			auto binding = _wireframe_program->binding();
 			
 			glDepthMask(GL_FALSE);
@@ -489,9 +490,30 @@ namespace TransformFlow {
 				binding.set_uniform("major_color", Vec4(0.4, 0.4, 0.4, 0.4));
 
 				_wireframe_renderer->render(frame->image_box);
+
+				if (offset == _start) {
+					Ref<FeatureTable> table = frame->image_update.feature_points->table();
+					binding.set_uniform("major_color", Vec4(1.0, 0.4, 0.4, 0.4));
+
+					for (auto chain : table->chains()) {
+						std::vector<Vec3> points;
+
+						while (chain != nullptr) {
+							Vec2 normalized_point = chain->offset / frame->image_update.image_buffer->size();
+							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
+
+							points.push_back(center << 0.01);
+
+							chain = chain->next;
+						}
+
+						_wireframe_renderer->render(points, LINE_STRIP);
+					}
+				}
+
+				offset += 1;
 			}
 			glDepthMask(GL_TRUE);
-
 		}
 	}
 

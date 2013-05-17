@@ -13,6 +13,8 @@
 #include <Dream/Imaging/Image.h>
 #include <Euclid/Numerics/Matrix.h>
 
+#include "FeatureTable.h"
+
 // Dense optical flow vs Sparse optical flow
 // Look at stereo image processing (correspondence between rectified pairs of images)
 namespace TransformFlow {
@@ -28,21 +30,11 @@ namespace TransformFlow {
 	using namespace Euclid::Numerics;
 	using namespace Dream::Imaging;
 	
-	struct FeaturePoint {
-		Vec2u offset;
-		
-		// The colour identity along the gradient:
-		Vec3 a, b;
-
-		// The gradient of the feature point:
-		Vec3 gradient;
-		
-		float similarity(const FeaturePoint & other);
-	};
-	
 	class FeaturePoints : public Object {
 	protected:
 		std::vector<Vec2> _offsets;
+		Ref<FeatureTable> _table;
+		
 		Ref<Image> _source;
 		
 		static void features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features);
@@ -52,7 +44,10 @@ namespace TransformFlow {
 		virtual ~FeaturePoints();
 
 		void scan(Ptr<Image> image);
-		
+
+		Ref<FeatureTable> table() { return _table; }
+
+		Ref<Image> source() const { return _source; }
 		const std::vector<Vec2> & offsets() const { return _offsets; }
 	};
 }

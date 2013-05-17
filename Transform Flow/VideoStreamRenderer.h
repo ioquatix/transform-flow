@@ -113,7 +113,7 @@ namespace TransformFlow {
 		std::vector<Shared<FrameCache>> _frame_cache;
 		
 		void update_cache(Ptr<VideoStream> video_stream);
-		
+
 	public:
 		VideoStreamRenderer(Ptr<RendererState> renderer_state);
 		virtual ~VideoStreamRenderer();
@@ -128,10 +128,14 @@ namespace TransformFlow {
 		}
 		
 		Vec2u range() const {
-			return Vec2u(_start, _count);
+			return {_start, _count};
 		}
 		
 		bool select_feature_point(Vec2 screen_coordinate);
+		Vec2u selected_feature_point() const {
+			return {_frame_index, _feature_index};
+		}
+
 		bool update_feature_transform();
 		bool apply_feature_algorithm();
 		

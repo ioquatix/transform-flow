@@ -47,9 +47,6 @@ namespace TransformFlow {
 		
 		Vec3 gravity;
 		Quat rotation;
-		
-		FeaturePoint lookup_feature_point(std::size_t index) {
-		}
 	};
 		
 	class VideoStream : public Object {
@@ -74,7 +71,7 @@ namespace TransformFlow {
 		
 		std::vector<AccelerometerUpdate> & accelerometer() { return _accelerometer; }
 		
-		std::vector<ImageUpdate> images() { return _images; }
+		std::vector<ImageUpdate> & images() { return _images; }
 		
 		Vec3 gravity_at_time(RealT time);
 		Quat rotation_between(RealT start, RealT end);

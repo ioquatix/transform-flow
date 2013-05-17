@@ -12,13 +12,6 @@
 namespace TransformFlow {
 	
 	using namespace Dream::Events::Logging;
-	
-	float FeaturePoint::similarity(const FeaturePoint & other) {
-		Vec3 da = (a - other.a);
-		Vec3 db = (b - other.b);
-		
-		return da.product() * db.product();
-	}
 
 	// Bresenham's Line Drawing Algorithm
 	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
@@ -118,9 +111,9 @@ namespace TransformFlow {
 		
 		Vec3u size = source->size();
 		
-		unsigned dy = std::max<unsigned>(size[Y] / 40, 2);
-		unsigned dx = std::max<unsigned>(size[X] / 40, 2);
-		
+		std::size_t dy = std::max<std::size_t>(size[Y] / 40, 2);
+		std::size_t dx = std::max<std::size_t>(size[X] / 40, 2);
+
 		for (std::size_t y = dy; y < size[Y]; y += dy) {
 			features_along_line(source, Vec2i(dx, y), Vec2i(size[X] - dx, y), _offsets);
 		}
@@ -128,7 +121,10 @@ namespace TransformFlow {
 		//for (std::size_t x = dx; x < size[X]; x += dx) {
 		//	features_along_line(source_image, Vec2i(x, dy), Vec2i(x, size[Y] - dy), _offsets);
 		//}
-		
+
+		_table = new FeatureTable(size.length() / 10, _source->size());
+		_table->update(this);
+
 		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");
 	}
 }

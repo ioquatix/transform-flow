@@ -19,6 +19,9 @@
 
 #include <Dream/Events/Logger.h>
 
+#include <Dream/Text/Font.h>
+#include <Dream/Text/TextBuffer.h>
+
 #include <Dream/Client/Graphics/MeshBuffer.h>
 #include <Dream/Client/Graphics/ImageRenderer.h>
 #include <Dream/Client/Graphics/WireframeRenderer.h>
@@ -64,6 +67,12 @@ namespace TransformFlow {
 		
 		Ref<VideoStream> _video_stream;
 		Ref<VideoStreamRenderer> _video_stream_renderer;
+
+		// Text rendering
+		Ref<Text::Font> _font;
+		Ref<Text::TextBuffer> _text_buffer;
+		Ref<ImageRenderer> _text_renderer;
+		Ref<Program> _text_program;
 
 	public:
 		virtual ~ImageSequenceScene ();
@@ -190,15 +199,37 @@ namespace TransformFlow {
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 		
-		logger()->log(LOG_INFO, "Will become current.");
+		{
+			using namespace Text;
+			
+			_font = resource_loader()->load<Font>("Fonts/Monaco");
+			_font->set_pixel_size(18);
+
+			_text_buffer = new TextBuffer(_font);
+			_text_renderer = new ImageRenderer(renderer_state->texture_manager);
+			auto & texture_parameters = _text_renderer->texture_parameters();
+			texture_parameters = TextureParameters::NEAREST;
+			texture_parameters.internal_format = GL_RG;
+
+			_text_program = renderer_state->load_program("Shaders/text");
+
+			_text_program->set_attribute_location("position", 0);
+			_text_program->set_attribute_location("mapping", 1);
+			_text_program->link();
+
+			{
+				auto binding = _text_program->binding();
+				binding.set_texture_unit("diffuse_texture", 0);
+				binding.set_uniform("highlight_color", Vec4(IDENTITY));
+			}
+
+		}
 	}
 	
 	void ImageSequenceScene::will_revoke_current (ISceneManager * manager)
 	{
 		Scene::will_revoke_current(manager);
-		
-		logger()->log(LOG_INFO, "Will revoke current.");
-		
+				
 		_shader_manager = NULL;
 		_texture_manager = NULL;
 	}
@@ -228,7 +259,15 @@ namespace TransformFlow {
 		
 		_viewport->set_bounds(AlignedBox<2>(ZERO, input.new_size()));
 		glViewport(0, 0, input.new_size()[WIDTH], input.new_size()[HEIGHT]);
-		
+
+		{
+			auto binding = _text_program->binding();
+
+			auto projection = orthographic_projection_matrix(AlignedBox3(ZERO, input.new_size() << 1.0));
+
+			binding.set_uniform("display_transform", projection);
+		}
+
 		check_graphics_error();
 		
 		return Scene::resize(input);
@@ -302,8 +341,47 @@ namespace TransformFlow {
 			_wireframe_renderer->render(sphere_box);
 			_wireframe_renderer->render_axis();
 		}
-		
+
 		_video_stream_renderer->render_frame_for_time(time, _video_stream);
+
+		{
+			auto binding = _text_program->binding();
+
+			bool regenerated;
+
+			StringStreamT buffer;
+
+			{
+				auto range = this->_video_stream_renderer->range();
+				auto index = this->_video_stream_renderer->selected_feature_point();
+				auto & image_update = this->_video_stream->images().at(index[0]);
+
+				buffer << "Gravity: " << image_update.gravity << std::endl;
+				buffer << "Time Offset: " << image_update.time_offset << std::endl;
+				buffer << "Feature Index: " << index << std::endl;
+
+				if (image_update.feature_points) {
+					auto feature = image_update.feature_points->offsets().at(index[1]);
+					buffer << "Feature Offset: " << feature << std::endl;
+				}
+
+				if (image_update.image_buffer) {
+					buffer << "Frame Size: " << image_update.image_buffer->size() << std::endl;
+				}
+				
+				buffer << "Frame Index: " << range << std::endl;
+			}
+
+			_text_buffer->set_text(buffer.str());
+
+			Ref<Image> text_image = _text_buffer->render_text(regenerated);
+			
+			if (regenerated) {
+				_text_renderer->invalidate(text_image);
+			}
+
+			_text_renderer->render(AlignedBox2::from_origin_and_size(ZERO, text_image->size()), text_image, Vec2b(false, false), 0);
+		}
 		
 		check_graphics_error();
 	}
