@@ -8,10 +8,12 @@
 
 #include "FeaturePoints.h"
 #include <Dream/Events/Logger.h>
+#include <Euclid/Geometry/AlignedBox.h>
 
 namespace TransformFlow {
 	
 	using namespace Dream::Events::Logging;
+	using namespace Euclid::Geometry;
 
 	// Bresenham's Line Drawing Algorithm
 	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
@@ -46,7 +48,7 @@ namespace TransformFlow {
 
 		auto image_reader = reader(*image);
 
-		for (int x = start[X]; x <= end[X]; x += 1) {
+		for (int x = start[X]; x < end[X]; x += 1) {
 			if (steep) {
 				offset[0] = vector(y, x);
 			} else {
@@ -122,9 +124,78 @@ namespace TransformFlow {
 		//	features_along_line(source_image, Vec2i(x, dy), Vec2i(x, size[Y] - dy), _offsets);
 		//}
 
-		_table = new FeatureTable(size.length() / 10, _source->size());
+		_table = new FeatureTable(size.length() / 3, _source->size());
 		_table->update(this);
 
 		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");
+	}
+
+	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & gravity_rotation)
+	{
+		if (_offsets.size()) return;
+		
+		_source = source;
+		AlignedBox2 bounds = ZERO, image_box(ZERO, _source->size());
+
+		{
+			// Forward rotation, create a bounding box where -y is "down".
+			Mat22 rotation = rotate<Z>(gravity_rotation);
+
+			Vec2 size = _source->size();
+
+			bounds.union_with_point(rotation * size);
+			bounds.union_with_point(rotation * Vec2(size[X], 0));
+			bounds.union_with_point(rotation * Vec2(0, size[Y]));
+
+			_bounding_box = bounds;
+
+			_table = new FeatureTable(size.length() / 3, size);
+		}
+
+		{
+			// Now we need to enumerate lines in the "rotated" space, and translate them back to image space:
+			Mat22 rotation = rotate<Z>(-gravity_rotation);
+
+			Vec2u size = bounds.size();
+
+			std::size_t dy = std::max<std::size_t>(size[Y] / 40, 2);
+			std::size_t dx = std::max<std::size_t>(size[X] / 40, 2);
+
+			// Assume the mid point is fixed for demo purposes:
+			float mid = size[Y] / 2.0, half_size = size[Y] / 2.0;
+
+			for (std::size_t y = bounds.min()[Y] + dy; y < bounds.max()[Y]; y += dy) {
+				// d goes from -1 to 1
+				//float d = (float)(y - mid) / half_size;
+				//float e = linear_interpolate(d*d, 0.0, 1.0);
+				//if (d < 0.0) e *= -1;
+				//float yd = e * half_size + mid;
+
+				Vec2 min(bounds.min()[X], y), max(bounds.max()[X], y);
+
+				// This segment is now in image space, perpendicular to gravity.
+				LineSegment2 segment(rotation * min, rotation * max), clipped_segment;
+
+				//log_debug("Features along line segment:", segment.start(), segment.end());
+
+				if (segment.clip(image_box, clipped_segment)) {
+					DREAM_ASSERT(clipped_segment.direction().equivalent(segment.direction()));
+
+					//log_debug("Clipped line segment:", segment.start(), segment.end());
+
+					_segments.push_back(clipped_segment);
+
+					//features_along_line(source, clipped_segment.start(), clipped_segment.end(), _offsets);
+				}
+			}
+		}
+
+		//for (std::size_t x = dx; x < size[X]; x += dx) {
+		//	features_along_line(source_image, Vec2i(x, dy), Vec2i(x, size[Y] - dy), _offsets);
+		//}
+
+		_table->update(this);
+
+		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");		
 	}
 }

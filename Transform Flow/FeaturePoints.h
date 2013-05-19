@@ -12,6 +12,7 @@
 #include <vector>
 #include <Dream/Imaging/Image.h>
 #include <Euclid/Numerics/Matrix.h>
+#include <Euclid/Geometry/Line.h>
 
 #include "FeatureTable.h"
 
@@ -28,6 +29,7 @@ namespace TransformFlow {
 	
 	using namespace Dream;
 	using namespace Euclid::Numerics;
+	using namespace Euclid::Geometry;
 	using namespace Dream::Imaging;
 	
 	class FeaturePoints : public Object {
@@ -38,17 +40,25 @@ namespace TransformFlow {
 		Ref<Image> _source;
 		
 		static void features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features);
-		
+
+		std::vector<LineSegment2> _segments;
+		AlignedBox2 _bounding_box;
+
 	public:		
 		FeaturePoints();
 		virtual ~FeaturePoints();
 
-		void scan(Ptr<Image> image);
+		void scan(Ptr<Image> source);
+		void scan(Ptr<Image> source, const Radians<> & gravity_rotation);
 
 		Ref<FeatureTable> table() { return _table; }
 
 		Ref<Image> source() const { return _source; }
 		const std::vector<Vec2> & offsets() const { return _offsets; }
+
+		const std::vector<LineSegment2> & segments() const { return _segments; }
+
+		const AlignedBox2 & bounding_box() const { return _bounding_box; }
 	};
 }
 
