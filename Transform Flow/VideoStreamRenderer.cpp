@@ -299,25 +299,32 @@ namespace TransformFlow {
 	void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream) {
 		if (_frame_cache.size() != 0) return;
 		
-		Vec3 down(0, 0, 1);
-		
-		Mat44 transform = translate(Vec3(0, 0, 25)) << rotate<Z>(R90) << rotate<X>(R180);
+		Vec3 down(-1, 0, 0);
+
+		Mat44 transform = IDENTITY; // = translate(Vec3{0, 25, 0}) << rotate<X>(R90);
 		
 		// Faux rotation
-		Mat44 rotation(IDENTITY);
+		//Mat44 rotation(IDENTITY);
 		Shared<FrameCache> previous;
+
+		TimeT first_time = video_stream->images().front().time_offset;
 		
 		for (auto & frame : video_stream->images()) {
 			if (frame.gravity.equivalent(0))
 				continue;
 			
-			Mat44 global_transform = rotation * transform;
+			//Mat44 global_transform = rotation * transform;
+			Mat44 global_transform = video_stream->rotation_between(first_time, frame.time_offset);
 			
 			auto angle = down.angle_between(frame.gravity);
-			if (angle > 0.001 && _alignment_mode > 0) {
+			//log_debug("Angle to gravity axis", angle.value * R2D, "down:", down, "frame.gravity:", frame.gravity);
+
+			if (!equivalent(angle.value, 0) && _alignment_mode > 0) {
 				Vec3 s = cross_product(down, frame.gravity);
 
-				global_transform = rotate(angle, s) << global_transform;
+				//global_transform = rotate(angle, -s) << global_transform;
+				//global_transform = frame.rotation << global_transform;
+
 			}
 			
 			Vec2 box_size = Vec2(frame.image_buffer->size()) / _scale;
@@ -341,7 +348,7 @@ namespace TransformFlow {
 			_frame_cache.push_back(cache);
 			previous = cache;
 			
-			rotation = rotation << frame.rotation;
+			//rotation = rotation << frame.rotation;
 			
 			// Setup particles
 			for (Vec2 offset : cache->image_update.feature_points->offsets()) {
@@ -491,8 +498,10 @@ namespace TransformFlow {
 
 				_wireframe_renderer->render(frame->image_box);
 
+				Ref<FeaturePoints> feature_points = frame->image_update.feature_points;
+
 				if (offset == _start) {
-					Ref<FeatureTable> table = frame->image_update.feature_points->table();
+					Ref<FeatureTable> table = feature_points->table();
 					binding.set_uniform("major_color", Vec4(1.0, 0.4, 0.4, 0.4));
 
 					for (auto chain : table->chains()) {
@@ -509,6 +518,31 @@ namespace TransformFlow {
 
 						_wireframe_renderer->render(points, LINE_STRIP);
 					}
+					
+					binding.set_uniform("major_color", Vec4(0.4, 0.2, 1.0, 0.4));
+
+					// *** Render horizontal scan lines
+					for (auto & segment : feature_points->segments()) {
+						std::vector<Vec3> points;
+
+						{
+							Vec2 normalized_point = segment.start() / frame->image_update.image_buffer->size();
+							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
+
+							points.push_back(center << 0.01);
+						}
+
+						{
+							Vec2 normalized_point = segment.end() / frame->image_update.image_buffer->size();
+							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
+
+							points.push_back(center << 0.01);
+						}
+
+						_wireframe_renderer->render(points, LINE_STRIP);
+					}
+
+					binding.set_uniform("major_color", Vec4(0.6, 0.4, 1.0, 0.8));
 				}
 
 				offset += 1;

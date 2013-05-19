@@ -23,30 +23,43 @@ namespace TransformFlow {
 	using namespace Dream::Imaging;
 	
 	struct GyroscopeUpdate {
-		RealT time_offset;
+		TimeT time_offset;
 		Vec3 rotation;
 	};
 	
 	struct AccelerometerUpdate {
-		RealT time_offset;
+		TimeT time_offset;
 		Vec3 acceleration;
 	};
 	
 	struct GravityUpdate {
-		RealT time_offset;
+		TimeT time_offset;
 		Vec3 gravity;
 	};
 	
 	class FeaturePoints;
 	
 	struct ImageUpdate {
-		RealT time_offset;
+		TimeT time_offset;
 		Ref<Image> image_buffer;
 		
 		Ref<FeaturePoints> feature_points;
 		
 		Vec3 gravity;
 		Quat rotation;
+
+		Radians<> tilt() const {
+			Vec3 down = {-1, 0, 0};
+			Vec3 r(gravity[X], gravity[Y], 0);
+
+			auto angle = r.normalize().angle_between(down);
+			auto orthogonal = cross_product(r, down);
+
+			if (orthogonal.dot({0, 0, -1}) < 0)
+				return (double)angle;
+			else
+				return (double)(R360 - angle);
+		}
 	};
 		
 	class VideoStream : public Object {
@@ -73,8 +86,8 @@ namespace TransformFlow {
 		
 		std::vector<ImageUpdate> & images() { return _images; }
 		
-		Vec3 gravity_at_time(RealT time);
-		Quat rotation_between(RealT start, RealT end);
+		Vec3 gravity_at_time(TimeT time);
+		Quat rotation_between(TimeT start, TimeT end);
 	};
 	
 }

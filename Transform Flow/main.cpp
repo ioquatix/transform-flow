@@ -353,14 +353,18 @@ namespace TransformFlow {
 
 			{
 				auto range = this->_video_stream_renderer->range();
+				auto & first_image_update = this->_video_stream->images().at(range[0]);
+
+				buffer << "Gravity: " << first_image_update.gravity << std::endl;
+				buffer << "Time Offset: " << first_image_update.time_offset << std::endl;
+				buffer << "Tilt: " << first_image_update.tilt() * R2D << std::endl;
+
 				auto index = this->_video_stream_renderer->selected_feature_point();
 				auto & image_update = this->_video_stream->images().at(index[0]);
 
-				buffer << "Gravity: " << image_update.gravity << std::endl;
-				buffer << "Time Offset: " << image_update.time_offset << std::endl;
 				buffer << "Feature Index: " << index << std::endl;
 
-				if (image_update.feature_points) {
+				if (image_update.feature_points && image_update.feature_points->offsets().size() > index[1]) {
 					auto feature = image_update.feature_points->offsets().at(index[1]);
 					buffer << "Feature Offset: " << feature << std::endl;
 				}
@@ -413,7 +417,8 @@ namespace TransformFlow {
 		
 		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/Test");
 
-		Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/VideoStream-2012-01-30-16-27-19");
+		Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/Gravity-Calibration-2013-05-19-16-43-00");
+		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/VideoStream-2012-01-30-16-27-19");
 		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/VideoStream-2012-02-17-02-01-01");
 		
 		Ref<VideoStream> video_stream = new VideoStream(data_path);

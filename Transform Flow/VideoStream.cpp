@@ -82,7 +82,7 @@ namespace TransformFlow {
 				update.image_buffer = frame_for_index(to<std::size_t>(parts.at(2)));
 				_images.push_back(update);				
 			} else {
-				logger()->log(LOG_WARN, LogBuffer() << "Unexpected line: " << line);
+				//logger()->log(LOG_WARN, LogBuffer() << "Unexpected line: " << line);
 			}
 		}
 		
@@ -101,7 +101,8 @@ namespace TransformFlow {
 
 			Dream::Core::Stopwatch watch;
 			watch.start();
-			image.feature_points->scan(image.image_buffer);
+			//image.feature_points->scan(image.image_buffer);
+			image.feature_points->scan(image.image_buffer, image.tilt());
 			watch.pause();
 
 			logger()->log(LOG_INFO, LogBuffer() << "Feature Point Scan: " << watch.time());
@@ -122,7 +123,7 @@ namespace TransformFlow {
 		logger()->log(LOG_DEBUG, buffer);
 	}
 	
-	Vec3 VideoStream::gravity_at_time(RealT time) {
+	Vec3 VideoStream::gravity_at_time(TimeT time) {
 		for (std::size_t i = 1; i < _gravity.size(); i += 1) {
 			if (_gravity[i].time_offset > time) {
 				RealT start_time = _gravity[i-1].time_offset;
@@ -145,24 +146,36 @@ namespace TransformFlow {
 		//return Quat(radians(angles[X]), Vec3(1,0,0)) * Quat(radians(angles[Y]), Vec3(0,1,0)) * Quat(radians(angles[Z]), Vec3(0,0,1));
 	}
 
-	Quat VideoStream::rotation_between(RealT start_time, RealT end_time) {
+	Quat VideoStream::rotation_between(TimeT start_time, TimeT end_time) {
 		// We need to find the first gyroscope update to work from:
 		std::size_t first = 1;
 		for (; first < _gyroscope.size(); first += 1) {
-			if (_gyroscope[first].time_offset > start_time) {
+			if (_gyroscope[first].time_offset >= start_time) {
 				break;
 			}
 		}
 		
 		// Now we need to incrementally calculate the total rotation over the matching frames:
-		// - could use linear interpolation for the start and end frame, but forget about that for now..
 		Quat total(IDENTITY);
-		
+
 		for (std::size_t i = first; i < _gyroscope.size(); i += 1) {
-			RealT dt = _gyroscope[i].time_offset - _gyroscope[i-1].time_offset;
-			total *= from_euler(_gyroscope[i].rotation * dt);
+			TimeT sample_start_time = _gyroscope[i-1].time_offset;
+			TimeT sample_end_time = _gyroscope[i].time_offset;
+
+			if (start_time > sample_start_time && start_time < sample_end_time) {
+				sample_start_time = start_time;
+			}
+
+			if (end_time > sample_start_time && end_time < sample_end_time) {
+				sample_end_time = end_time;
+			}
 			
-			if (_gyroscope[i].time_offset > end_time)
+			TimeT dt = sample_end_time - sample_start_time;
+
+			total *= from_euler(_gyroscope.at(i).rotation * dt);
+			total = total.normalize();
+			
+			if (sample_end_time >= end_time)
 				break;
 		}
 		
