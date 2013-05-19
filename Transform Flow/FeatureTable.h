@@ -39,6 +39,8 @@ namespace TransformFlow
 		std::vector<Chain *> _chains;
 		std::vector<Bin> _bins;
 
+		void print_table(std::ostream & output);
+
 		Chain * find_previous_similar(Vec2 offset, std::size_t index);
 
 	public:

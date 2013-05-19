@@ -18,6 +18,23 @@ namespace TransformFlow {
 		_bins.resize(bins);
 	}
 
+	void FeatureTable::print_table(std::ostream & output)
+	{
+		std::size_t index = 0;
+
+		for (auto & bin : _bins) {
+			output << "Bin " << index << ": ";
+
+			for (auto & chain : bin.links) {
+				output << chain.offset << "; ";
+			}
+
+			output << std::endl;
+
+			index += 1;
+		}
+	}
+
 	FeatureTable::Chain * FeatureTable::find_previous_similar(Vec2 offset, std::size_t index)
 	{
 		Chain * best_chain = nullptr;
@@ -27,17 +44,17 @@ namespace TransformFlow {
 		auto begin = _bins.begin() + index;
 		auto end = _bins.begin() + (index + 1);
 
-		if (begin != _bins.begin())
+		if (begin != _bins.begin()) {
 			--begin;
-
-		if (end != _bins.end())
-			++end;
-
-		log_debug("find_previous_similar", offset, " @ ", index);
-
-		if (offset.equivalent({98, 206.5})) {
-			log_debug("Checkpoint");
+			//log_debug("Looking to left, size =", begin->links->size());
 		}
+
+		if (end != _bins.end()) {
+			++end;
+			//log_debug("Looking to right, size =", (end - 1)->links->size());
+		}
+
+		//log_debug("find_previous_similar", offset, " @ ", index);
 
 		for (auto bin = begin; bin != end; ++bin) {
 			if (bin->links.size() == 0) continue;
@@ -47,7 +64,7 @@ namespace TransformFlow {
 
 			//DREAM_ASSERT(previous_chain->offset[Y] < offset[Y]);
 
-			log_debug("*", previous_chain->offset, "displacement", displacement);
+			//log_debug("*", previous_chain->offset, "displacement", displacement);
 
 			if (displacement[X] > 2 || displacement[Y] > 15) continue;
 
@@ -57,8 +74,8 @@ namespace TransformFlow {
 			}
 		}
 
-		if (best_chain)
-			log_debug("->", best_chain->offset, "displacement", best_displacement);
+		//if (best_chain)
+		//	log_debug("->", best_chain->offset, "displacement", best_displacement);
 
 		return best_chain;
 	}
@@ -68,7 +85,7 @@ namespace TransformFlow {
 		for (auto offset : feature_points->offsets()) {
 			// We are just concerned with horizontal offset:
 			auto f = offset[X] / _size[X];
-			auto index = f * _bins.size();
+			std::size_t index = f * _bins.size();
 
 			auto & bin = _bins.at(index);
 
@@ -83,6 +100,8 @@ namespace TransformFlow {
 			} else {
 				_chains.push_back(&bin.links.back());
 			}
+
+			//print_table(std::cout);
 		}
 
 		//std::size_t i = 0;
