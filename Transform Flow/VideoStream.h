@@ -21,7 +21,7 @@ namespace TransformFlow {
 	using namespace Dream::Core;
 	using namespace Euclid::Numerics;
 	using namespace Dream::Imaging;
-	
+
 	struct GyroscopeUpdate {
 		TimeT time_offset;
 		Vec3 rotation;

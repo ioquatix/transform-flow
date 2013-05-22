@@ -301,7 +301,8 @@ namespace TransformFlow {
 		
 		Vec3 down(-1, 0, 0);
 
-		Mat44 transform = IDENTITY; // = translate(Vec3{0, 25, 0}) << rotate<X>(R90);
+		// Transform the video from camera space to device space:
+		Mat44 device_transform = translate(Vec3{0, 25, 0}) << rotate<X>(R90);
 		
 		// Faux rotation
 		//Mat44 rotation(IDENTITY);
@@ -314,7 +315,7 @@ namespace TransformFlow {
 				continue;
 			
 			//Mat44 global_transform = rotation * transform;
-			Mat44 global_transform = video_stream->rotation_between(first_time, frame.time_offset);
+			Mat44 global_transform = IDENTITY; //video_stream->rotation_between(first_time, frame.time_offset);
 			
 			auto angle = down.angle_between(frame.gravity);
 			//log_debug("Angle to gravity axis", angle.value * R2D, "down:", down, "frame.gravity:", frame.gravity);
@@ -322,9 +323,8 @@ namespace TransformFlow {
 			if (!equivalent(angle.value, 0) && _alignment_mode > 0) {
 				Vec3 s = cross_product(down, frame.gravity);
 
-				//global_transform = rotate(angle, -s) << global_transform;
-				//global_transform = frame.rotation << global_transform;
-
+				global_transform = rotate(angle, -s) << global_transform;
+				global_transform = frame.rotation << global_transform;
 			}
 			
 			Vec2 box_size = Vec2(frame.image_buffer->size()) / _scale;
@@ -332,7 +332,7 @@ namespace TransformFlow {
 
 			Shared<FrameCache> cache = new FrameCache;
 			cache->image_update = frame;
-			cache->global_transform = global_transform;
+			cache->global_transform = device_transform << global_transform;
 			
 			if (previous) {
 				cache->local_transform = inverse(inverse(global_transform) * previous->global_transform);
@@ -382,19 +382,19 @@ namespace TransformFlow {
 			// Update the frame cache if required.
 			update_cache(video_stream);
 			
-			Mat44 global_transform(IDENTITY);
+			Mat44 global_transform = IDENTITY;
 			
 			for (auto & frame : _frame_cache) {
 				if (frame->image_update.gravity.equivalent(0))
 					continue;
 				
-				global_transform = global_transform << frame->local_transform;
+				global_transform = frame->local_transform << global_transform;
 				
 				if (_alignment_mode >= FEATURE_ALIGNMENT) {
-					global_transform = global_transform << frame->feature_transform;
+					global_transform = frame->feature_transform << global_transform;
 				}
 				
-				frame->global_transform = global_transform;
+				//frame->global_transform = global_transform;
 				binding.set_uniform("transform_matrix", frame->global_transform);
 				
 				if (offset >= start)

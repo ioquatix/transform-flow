@@ -417,7 +417,7 @@ namespace TransformFlow {
 		
 		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/Test");
 
-		Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/Gravity-Calibration-2013-05-19-16-43-00");
+		Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/VideoStream-2012-01-30-16-49-32");
 		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/VideoStream-2012-01-30-16-27-19");
 		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/VideoStream-2012-02-17-02-01-01");
 		
