@@ -22,18 +22,11 @@ namespace TransformFlow {
 	using namespace Euclid::Numerics;
 	using namespace Dream::Imaging;
 
-	struct GyroscopeUpdate {
+	struct MotionUpdate {
 		TimeT time_offset;
-		Vec3 rotation;
-	};
-	
-	struct AccelerometerUpdate {
-		TimeT time_offset;
+
+		Vec3 rotation_rate;
 		Vec3 acceleration;
-	};
-	
-	struct GravityUpdate {
-		TimeT time_offset;
 		Vec3 gravity;
 	};
 	
@@ -61,7 +54,7 @@ namespace TransformFlow {
 				return (double)(R360 - angle);
 		}
 	};
-		
+	
 	class VideoStream : public Object {
 	protected:
 		Ref<Resources::Loader> _loader;
@@ -71,9 +64,7 @@ namespace TransformFlow {
 		
 		void parse_log();
 		
-		std::vector<GyroscopeUpdate> _gyroscope;
-		std::vector<AccelerometerUpdate> _accelerometer;
-		std::vector<GravityUpdate> _gravity;
+		std::vector<MotionUpdate> _motion;
 		std::vector<ImageUpdate> _images;
 		
 	public:		
@@ -81,9 +72,8 @@ namespace TransformFlow {
 		virtual ~VideoStream() noexcept;
 		
 		void debug();
-		
-		std::vector<AccelerometerUpdate> & accelerometer() { return _accelerometer; }
-		
+
+		const std::vector<MotionUpdate> & motion() const { return _motion; }
 		std::vector<ImageUpdate> & images() { return _images; }
 		
 		Vec3 gravity_at_time(TimeT time);

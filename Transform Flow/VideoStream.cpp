@@ -18,8 +18,9 @@ namespace TransformFlow {
 	const char * GYROSCOPE = "Gyroscope";
 	const char * ACCELEROMETER = "Accelerometer";
 	const char * GRAVITY = "Gravity";
+	const char * MOTION = "Motion";
 	const char * FRAME = "Frame Captured";
-	
+
 	VideoStream::VideoStream(const Path & path) : _loader(new Resources::Loader(path)) {
 		_loader->add_loader(new Image::Loader);
 		
@@ -48,6 +49,9 @@ namespace TransformFlow {
 		Shared<std::istream> stream = data->input_stream();
 		
 		std::string line;
+
+		MotionUpdate motion_update;
+
 		while (stream->good()) {
 			std::getline(*stream, line, '\n');
 			
@@ -62,20 +66,14 @@ namespace TransformFlow {
 				continue;
 			
 			if (parts.at(1) == GYROSCOPE) {
-				GyroscopeUpdate update;
-				update.time_offset = to<RealT>(parts.at(2));
-				update.rotation = Vec3(to<RealT>(parts.at(3)), to<RealT>(parts.at(4)), to<RealT>(parts.at(5)));
-				_gyroscope.push_back(update);
+				motion_update.rotation_rate = Vec3(to<RealT>(parts.at(3)), to<RealT>(parts.at(4)), to<RealT>(parts.at(5)));
 			} else if (parts.at(1) == ACCELEROMETER) {
-				AccelerometerUpdate update;
-				update.time_offset = to<RealT>(parts.at(2));
-				update.acceleration = Vec3(to<RealT>(parts.at(3)), to<RealT>(parts.at(4)), to<RealT>(parts.at(5)));
-				_accelerometer.push_back(update);
+				motion_update.acceleration = Vec3(to<RealT>(parts.at(3)), to<RealT>(parts.at(4)), to<RealT>(parts.at(5)));
 			} else if (parts.at(1) == GRAVITY) {
-				GravityUpdate update;
-				update.time_offset = to<RealT>(parts.at(2));
-				update.gravity = Vec3(to<RealT>(parts.at(3)), to<RealT>(parts.at(4)), to<RealT>(parts.at(5)));
-				_gravity.push_back(update);
+				motion_update.gravity = Vec3(to<RealT>(parts.at(3)), to<RealT>(parts.at(4)), to<RealT>(parts.at(5)));
+			} else if (parts.at(1) == MOTION) {
+				motion_update.time_offset = to<TimeT>(parts.at(2));
+				_motion.push_back(motion_update);
 			} else if (parts.at(1) == FRAME) {
 				ImageUpdate update;
 				update.time_offset = to<RealT>(parts.at(3));
@@ -101,40 +99,23 @@ namespace TransformFlow {
 
 			Dream::Core::Stopwatch watch;
 			watch.start();
-			//image.feature_points->scan(image.image_buffer);
 			image.feature_points->scan(image.image_buffer, image.tilt());
 			watch.pause();
 
-			logger()->log(LOG_INFO, LogBuffer() << "Feature Point Scan: " << watch.time());
+			log_debug("Feature Point Scan:", watch.time());
 			
 			previous = &image;
 		}
 	}
 	
 	void VideoStream::debug() {
-		LogBuffer buffer;
-		buffer << "Video Stream Debug:" << std::endl;
-		
-		buffer << "Gyroscope Updates: " << _gyroscope.size() << std::endl;
-		buffer << "Accelerometer Updates: " << _accelerometer.size() << std::endl;
-		buffer << "Gravity Updates: " << _gravity.size() << std::endl;
-		buffer << "Image Updates: " << _images.size() << std::endl;
-		
-		logger()->log(LOG_DEBUG, buffer);
+		log_debug("Video Stream", _images.size(), "frames,", _motion.size(), "motion updates.");
 	}
 	
 	Vec3 VideoStream::gravity_at_time(TimeT time) {
-		for (std::size_t i = 1; i < _gravity.size(); i += 1) {
-			if (_gravity[i].time_offset > time) {
-				RealT start_time = _gravity[i-1].time_offset;
-				RealT end_time = _gravity[i].time_offset;
-				
-				RealT duration = end_time - start_time;
-				RealT offset = end_time - time;
-				
-				Vec3 result = linear_interpolate(offset / duration, _gravity[i-1].gravity, _gravity[i].gravity);
-
-				return result.normalize();
+		for (std::size_t i = 1; i < _motion.size(); i += 1) {
+			if (_motion[i].time_offset > time) {
+				return _motion[i-1].gravity;
 			}
 		}
 		
@@ -149,8 +130,8 @@ namespace TransformFlow {
 	Quat VideoStream::rotation_between(TimeT start_time, TimeT end_time) {
 		// We need to find the first gyroscope update to work from:
 		std::size_t first = 1;
-		for (; first < _gyroscope.size(); first += 1) {
-			if (_gyroscope[first].time_offset >= start_time) {
+		for (; first < _motion.size(); first += 1) {
+			if (_motion[first].time_offset >= start_time) {
 				break;
 			}
 		}
@@ -158,9 +139,9 @@ namespace TransformFlow {
 		// Now we need to incrementally calculate the total rotation over the matching frames:
 		Quat total(IDENTITY);
 
-		for (std::size_t i = first; i < _gyroscope.size(); i += 1) {
-			TimeT sample_start_time = _gyroscope[i-1].time_offset;
-			TimeT sample_end_time = _gyroscope[i].time_offset;
+		for (std::size_t i = first; i < _motion.size(); i += 1) {
+			TimeT sample_start_time = _motion[i-1].time_offset;
+			TimeT sample_end_time = _motion[i].time_offset;
 
 			if (start_time > sample_start_time && start_time < sample_end_time) {
 				sample_start_time = start_time;
@@ -172,7 +153,7 @@ namespace TransformFlow {
 			
 			TimeT dt = sample_end_time - sample_start_time;
 
-			total *= from_euler(_gyroscope.at(i).rotation * dt);
+			total *= from_euler(_motion.at(i).rotation_rate * dt);
 			total = total.normalize();
 			
 			if (sample_end_time >= end_time)

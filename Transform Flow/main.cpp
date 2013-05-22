@@ -414,12 +414,10 @@ namespace TransformFlow {
 		Ref<ILoader> loader = SceneManager::default_resource_loader();
 		
 		Ref<SceneManager> scene_manager = new SceneManager(_context, thread->loop(), loader);
-		
-		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/Test");
 
-		Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/VideoStream-2012-01-30-16-49-32");
-		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/VideoStream-2012-01-30-16-27-19");
-		//Path data_path = Path("/Users/samuel/Documents/Programming/Graphics/Dream/examples/Transform Flow/Data/VideoStream-2012-02-17-02-01-01");
+		Path root_data_path = "/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/";
+
+		Path data_path = root_data_path + "VideoStream-2013-05-22-18-13-23";
 		
 		Ref<VideoStream> video_stream = new VideoStream(data_path);
 		

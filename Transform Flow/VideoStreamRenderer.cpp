@@ -295,7 +295,7 @@ namespace TransformFlow {
 	VideoStreamRenderer::~VideoStreamRenderer() {
 		
 	}
-	
+
 	void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream) {
 		if (_frame_cache.size() != 0) return;
 		
@@ -313,35 +313,41 @@ namespace TransformFlow {
 		for (auto & frame : video_stream->images()) {
 			if (frame.gravity.equivalent(0))
 				continue;
-			
-			//Mat44 global_transform = rotation * transform;
-			Mat44 global_transform = IDENTITY; //video_stream->rotation_between(first_time, frame.time_offset);
-			
-			auto angle = down.angle_between(frame.gravity);
-			//log_debug("Angle to gravity axis", angle.value * R2D, "down:", down, "frame.gravity:", frame.gravity);
 
-			if (!equivalent(angle.value, 0) && _alignment_mode > 0) {
-				Vec3 s = cross_product(down, frame.gravity);
-
-				global_transform = rotate(angle, -s) << global_transform;
-				global_transform = frame.rotation << global_transform;
-			}
-			
+			// Calculate the image box:
 			Vec2 box_size = Vec2(frame.image_buffer->size()) / _scale;
 			AlignedBox2 image_box = AlignedBox2::from_center_and_size(ZERO, box_size);
 
+			// Prepare the frame cache:
 			Shared<FrameCache> cache = new FrameCache;
+			cache->image_box = image_box;
 			cache->image_update = frame;
-			cache->global_transform = device_transform << global_transform;
-			
+
+			// The initial transform is the device transform:
+			cache->global_transform = IDENTITY;
+
+			// Apply the rotation as calculated by the gyroscope:
+			//Mat44 gyroscope_rotation = video_stream->rotation_between(first_time, frame.time_offset);
+			//cache->global_transform = cache->global_transform << gyroscope_rotation;
+
+			// Correct for gravity/accelerometer measurements:
+			auto angle = down.angle_between(frame.gravity);
+			if (!equivalent(angle.value, 0) && _alignment_mode > 0) {
+				Vec3 s = cross_product(down, frame.gravity);
+
+				Mat44 gravity_rotation = rotate(angle, -s);
+				cache->global_transform = cache->global_transform << gravity_rotation;
+			}
+
+			cache->global_transform = device_transform << cache->global_transform;
+
+			// Calculate the local transform, if any:
 			if (previous) {
-				cache->local_transform = inverse(inverse(global_transform) * previous->global_transform);
+				cache->local_transform = inverse(inverse(cache->global_transform) * previous->global_transform);
 			} else {
 				cache->local_transform = cache->global_transform;
 			}
-			
-			cache->image_box = image_box;
-			
+
 			// We calculate this on demand for the visualisation:
 			cache->feature_transform = Mat44(IDENTITY);
 			
