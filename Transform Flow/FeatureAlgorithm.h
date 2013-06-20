@@ -41,8 +41,8 @@ namespace TransformFlow {
 	public:
 		MatchingAlgorithm(std::string name, Shared<cv::FeatureDetector> detector, Shared<cv::DescriptorExtractor> extractor, Shared<cv::DescriptorMatcher> matcher);
 
-		virtual Vec2 calculate_local_translation(ImageUpdate & initial, ImageUpdate & next);
-		virtual Mat44 calculate_local_transform(ImageUpdate & initial, ImageUpdate & next);
+		virtual Vec2 calculate_local_translation(const ImageUpdate & initial, const ImageUpdate & next);
+		virtual Mat44 calculate_local_transform(const ImageUpdate & initial, const ImageUpdate & next);
 	};
 
 	Ref<MatchingAlgorithm> matchingAlgorithmUsingORB();

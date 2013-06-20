@@ -13,9 +13,19 @@ namespace TransformFlow {
 
 	using namespace Dream::Events::Logging;
 
-	FeatureTable::FeatureTable(std::size_t bins, Vec2u size) : _size(size)
+	FeatureTable::FeatureTable(std::size_t bins, const AlignedBox2 & bounds, const Radians<> & rotation) : _bounds(ZERO)
 	{
+		_rotation = rotate<Z>(rotation);
+
 		_bins.resize(bins);
+
+		// Calculate a new rotated bounding box:
+		_bounds.union_with_point(_rotation * bounds.min());
+		_bounds.union_with_point(_rotation * bounds.max());
+		_bounds.union_with_point(_rotation * bounds.corner({false, true}));
+		_bounds.union_with_point(_rotation * bounds.corner({true, false}));
+
+		_size = _bounds.size();
 	}
 
 	void FeatureTable::print_table(std::ostream & output)
@@ -35,7 +45,7 @@ namespace TransformFlow {
 		}
 	}
 
-	FeatureTable::Chain * FeatureTable::find_previous_similar(Vec2 offset, std::size_t index)
+	FeatureTable::Chain * FeatureTable::find_previous_similar(Vec2 aligned_offset, std::size_t index)
 	{
 		Chain * best_chain = nullptr;
 		Vec2 best_displacement;
@@ -60,7 +70,7 @@ namespace TransformFlow {
 			if (bin->links.size() == 0) continue;
 
 			Chain * previous_chain = &bin->links.back();
-			Vec2 displacement = (offset - previous_chain->offset).absolute();
+			Vec2 displacement = (aligned_offset - previous_chain->aligned_offset).absolute();
 
 			//DREAM_ASSERT(previous_chain->offset[Y] < offset[Y]);
 
@@ -80,19 +90,21 @@ namespace TransformFlow {
 		return best_chain;
 	}
 
-	void FeatureTable::update(FeaturePoints * feature_points)
+	void FeatureTable::update(const std::vector<Vec2> & offsets)
 	{
-		for (auto offset : feature_points->offsets()) {
+		for (auto offset : offsets) {
+			auto aligned_offset = (_rotation * offset) - _bounds.min();
+
 			// We are just concerned with horizontal offset:
-			auto f = offset[X] / _size[X];
+			auto f = aligned_offset[X] / _size[X];
 			std::size_t index = f * _bins.size();
 
 			auto & bin = _bins.at(index);
 
-			Chain * previous_link = find_previous_similar(offset, index);
+			Chain * previous_link = find_previous_similar(aligned_offset, index);
 
 			// Add the chain link into the correct bin:
-			bin.links.push_back({offset, nullptr});
+			bin.links.push_back({aligned_offset, offset, nullptr});
 
 			// Add the chain into the list of all chains if it is a new chain:
 			if (previous_link != nullptr) {

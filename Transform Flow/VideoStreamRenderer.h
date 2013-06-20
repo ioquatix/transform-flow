@@ -79,7 +79,10 @@ namespace TransformFlow {
 			FrameCache();
 			virtual ~FrameCache();
 			
-			ImageUpdate image_update;
+			VideoStream::VideoFrame video_frame;
+
+			inline Ref<Image> image_buffer() { return video_frame.image_update->image_buffer; }
+			inline Ref<FeaturePoints> feature_points() { return video_frame.feature_points; }
 			
 			// A transform to align based on sensor data:
 			Mat44 local_transform;

@@ -39,7 +39,7 @@ namespace TransformFlow {
 		cv::cvtColor(color_frame, output, CV_RGB2GRAY);
 	}
 
-	Vec2 MatchingAlgorithm::calculate_local_translation(ImageUpdate & initial, ImageUpdate & next) {
+	Vec2 MatchingAlgorithm::calculate_local_translation(const ImageUpdate & initial, const ImageUpdate & next) {
 		Vec3u size = initial.image_buffer->size();
 		
 		cv::Mat initial_frame(size[Y], size[X], CV_8UC4, (void*)initial.image_buffer->data());
@@ -78,7 +78,7 @@ namespace TransformFlow {
 		return total_translation / samples;
 	}
 
-	Mat44 MatchingAlgorithm::calculate_local_transform(ImageUpdate & initial, ImageUpdate & next) {
+	Mat44 MatchingAlgorithm::calculate_local_transform(const ImageUpdate & initial, const ImageUpdate & next) {
 		cv::Mat initial_frame, next_frame;
 
 		convert_to_greyscale(initial.image_buffer, initial_frame);

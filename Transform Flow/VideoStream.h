@@ -9,75 +9,37 @@
 #ifndef _TRANSFORM_FLOW_VIDEO_STREAM_H
 #define _TRANSFORM_FLOW_VIDEO_STREAM_H
 
-#include <Dream/Resources/Loader.h>
-#include <Euclid/Numerics/Vector.h>
-#include <Euclid/Numerics/Quaternion.h>
-#include <Dream/Imaging/Image.h>
-
+#include "MotionModel.h"
 #include "FeaturePoints.h"
 
 namespace TransformFlow {
-	using namespace Dream;
-	using namespace Dream::Core;
-	using namespace Euclid::Numerics;
-	using namespace Dream::Imaging;
 
-	struct MotionUpdate {
-		TimeT time_offset;
+	class VideoStream : public Object
+	{
+		public:
+			struct VideoFrame
+			{
+				Shared<ImageUpdate> image_update;
 
-		Vec3 rotation_rate;
-		Vec3 acceleration;
-		Vec3 gravity;
-	};
-	
-	class FeaturePoints;
-	
-	struct ImageUpdate {
-		TimeT time_offset;
-		Ref<Image> image_buffer;
-		
-		Ref<FeaturePoints> feature_points;
-		
-		Vec3 gravity;
-		Quat rotation;
+				Vec3 gravity;
+				double bearing;
 
-		Radians<> tilt() const {
-			Vec3 down = {-1, 0, 0};
-			Vec3 r(gravity[X], gravity[Y], 0);
+				Ref<FeaturePoints> feature_points;
 
-			auto angle = r.normalize().angle_between(down);
-			auto orthogonal = cross_product(r, down);
+				void calculate_feature_points();
+			};
 
-			if (orthogonal.dot({0, 0, -1}) < 0)
-				return (double)angle;
-			else
-				return (double)(R360 - angle);
-		}
-	};
-	
-	class VideoStream : public Object {
-	protected:
-		Ref<Resources::Loader> _loader;
-		
-		std::vector<Ref<Image>> _frames;
-		Ref<Image> frame_for_index(std::size_t index);
-		
-		void parse_log();
-		
-		std::vector<MotionUpdate> _motion;
-		std::vector<ImageUpdate> _images;
-		
-	public:		
-		VideoStream(const Path & path);
-		virtual ~VideoStream() noexcept;
-		
-		void debug();
+		protected:
+			Ref<SensorData> _sensor_data;
+			Ref<MotionModel> _motion_model;
 
-		const std::vector<MotionUpdate> & motion() const { return _motion; }
-		std::vector<ImageUpdate> & images() { return _images; }
-		
-		Vec3 gravity_at_time(TimeT time);
-		Quat rotation_between(TimeT start, TimeT end);
+			std::vector<VideoFrame> _images;
+
+		public:
+			VideoStream(const Path & path, Ref<MotionModel> motion_model);
+			virtual ~VideoStream() noexcept;
+
+			const std::vector<VideoFrame> & images() const { return _images; }
 	};
 	
 }

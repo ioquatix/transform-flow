@@ -103,7 +103,7 @@ namespace TransformFlow {
 	
 	Vec3 VideoStreamRenderer::FrameCache::global_coordinate_of_pixel_coordinate(Vec2 point) {
 		// We need to calculate the global positioning of the pixel:
-		Vec2 normalized_point = point / image_update.image_buffer->size();
+		Vec2 normalized_point = point / image_buffer()->size();
 		Vec2 center = image_box.absolute_position_of(normalized_point);
 		
 		// Calculate the 3d position of the feature by applying the frame's global transform to the image coordinate:
@@ -116,19 +116,19 @@ namespace TransformFlow {
 		Vec3 local_coordinate = inverse(global_transform) * point;
 		
 		Vec2 normalized_point = image_box.relative_offset_of(local_coordinate.reduce());
-		Vec2 pixel_coordinate = normalized_point * image_update.image_buffer->size();
+		Vec2 pixel_coordinate = normalized_point * image_buffer()->size();
 		
 		return pixel_coordinate;
 	}
 	
 	void VideoStreamRenderer::FrameCache::calculate_feature_transform(Shared<FrameCache> next) {
 		// We want the local transform from the current frame to the next frame..
-		Vec2 point = image_update.feature_points->offsets()[selected_feature_index];
+		Vec2 point = feature_points()->offsets()[selected_feature_index];
 		
 		// Hard coded horizontal scanning - grab left and right pixel from source image:
 		Vector<3, ByteT> source_pixels[2], next_pixels[2];
 
-		auto image_reader = reader(*image_update.image_buffer);
+		auto image_reader = reader(*image_buffer());
 
 		source_pixels[0] = image_reader[point];
 		source_pixels[1] = image_reader[point + vector(1, 0)];
@@ -163,10 +163,10 @@ namespace TransformFlow {
 		
 		for (; offset < 60; offset += 1) {
 			Vec2 scan_point = next_pixel_coordinate + Vec2(offset, 0);
-			scan_point[Y] = next->image_update.image_buffer->size()[HEIGHT] - scan_point[Y];
+			scan_point[Y] = next->image_buffer()->size()[HEIGHT] - scan_point[Y];
 			
 			next_pixels[0] = next_pixels[1];
-			next_pixels[1] = reader(*next->image_update.image_buffer)[scan_point];
+			next_pixels[1] = reader(*next->image_buffer())[scan_point];
 			
 			if (offset == 0)
 				continue;
@@ -185,7 +185,7 @@ namespace TransformFlow {
 			
 			logger()->log(LOG_INFO, LogBuffer() << "Index: " << offset << " difference: " << total << " minimum: " << minimum << " @ " << minimum_offset);
 			
-			Ptr<Image> image = next->image_update.image_buffer;
+			Ptr<Image> image = next->image_buffer();
 			// TODO: Fix image writer API:
 			auto intensity = std::max<ByteT>(255 - total, 0);
 			writer(*image).set(scan_point, Vector<3, ByteT>(intensity));
@@ -226,7 +226,7 @@ namespace TransformFlow {
 	void VideoStreamRenderer::FrameCache::find_vertical_edges() {
 		if (selected_feature_index != (std::size_t)-1) {
 			// We just use 2-space gravity as we are interested in the delta as applied to the captured image. If the camera is pointing up or down, the gravity vector can't be easily applied to the image.
-			Vec2 gravity = (global_transform * image_update.gravity).reduce();
+			Vec2 gravity = (global_transform * video_frame.gravity).reduce();
 			
 			if (gravity.length_squared() < 0.01) {
 				return;
@@ -234,14 +234,12 @@ namespace TransformFlow {
 			
 			gravity.normalize();
 			
-			Vec2i point = image_update.feature_points->offsets()[selected_feature_index];
+			Vec2i point = feature_points()->offsets()[selected_feature_index];
 			
 			for (std::size_t i = 0; i < 10; i += 1) {
 				Vec2i offset = point + (gravity * i);
-				
-				Ptr<Image> image = image_update.image_buffer;
 
-				writer(*image).set(offset, Vector<3, ByteT>(255, 0, 0));
+				writer(*image_buffer()).set(offset, Vector<3, ByteT>(255, 0, 0));
 			}
 		}
 	}
@@ -308,20 +306,20 @@ namespace TransformFlow {
 		//Mat44 rotation(IDENTITY);
 		Shared<FrameCache> previous;
 
-		TimeT first_time = video_stream->images().front().time_offset;
+		TimeT first_time = video_stream->images().front().image_update->time_offset;
 		
 		for (auto & frame : video_stream->images()) {
 			if (frame.gravity.equivalent(0))
 				continue;
 
 			// Calculate the image box:
-			Vec2 box_size = Vec2(frame.image_buffer->size()) / _scale;
+			Vec2 box_size = Vec2(frame.image_update->image_buffer->size()) / _scale;
 			AlignedBox2 image_box = AlignedBox2::from_center_and_size(ZERO, box_size);
 
 			// Prepare the frame cache:
 			Shared<FrameCache> cache = new FrameCache;
 			cache->image_box = image_box;
-			cache->image_update = frame;
+			cache->video_frame = frame;
 
 			// The initial transform is the device transform:
 			cache->global_transform = IDENTITY;
@@ -357,13 +355,13 @@ namespace TransformFlow {
 			//rotation = rotation << frame.rotation;
 			
 			// Setup particles
-			for (Vec2 offset : cache->image_update.feature_points->offsets()) {
+			for (Vec2 offset : cache->feature_points()->offsets()) {
 				Vec2 center = (offset / _scale) + cache->image_box.min();
 				
 				cache->marker_particles->add(center << 0, Vec3(0.5, 0.5, 0), Vec3(0, 0, 1), Vec2u(1, 1));
 			}
 
-			for (Vec2 offset : find_key_points(cache->image_update.image_buffer)) {
+			for (Vec2 offset : find_key_points(cache->image_buffer())) {
 				Vec2 center = (offset / _scale) + cache->image_box.min();
 
 				cache->feature_particles->add(center << 0, Vec3(0.5, 0.5, 0), Vec3(0, 0, 1), Vec2u(1, 1), Vec3(0.5, 0.5, 0.2));
@@ -391,7 +389,7 @@ namespace TransformFlow {
 			Mat44 global_transform = IDENTITY;
 			
 			for (auto & frame : _frame_cache) {
-				if (frame->image_update.gravity.equivalent(0))
+				if (frame->video_frame.gravity.equivalent(0))
 					continue;
 				
 				global_transform = frame->local_transform << global_transform;
@@ -404,7 +402,7 @@ namespace TransformFlow {
 				binding.set_uniform("transform_matrix", frame->global_transform);
 				
 				if (offset >= start)
-					_pixel_buffer_renderer->render(frame->image_box, frame->image_update.image_buffer);
+					_pixel_buffer_renderer->render(frame->image_box, frame->image_buffer());
 								
 				if (offset >= start && --count == 0)
 					break;
@@ -504,7 +502,7 @@ namespace TransformFlow {
 
 				_wireframe_renderer->render(frame->image_box);
 
-				Ref<FeaturePoints> feature_points = frame->image_update.feature_points;
+				Ref<FeaturePoints> feature_points = frame->feature_points();
 
 				if (offset == _start) {
 					Ref<FeatureTable> table = feature_points->table();
@@ -514,7 +512,7 @@ namespace TransformFlow {
 						std::vector<Vec3> points;
 
 						while (chain != nullptr) {
-							Vec2 normalized_point = chain->offset / frame->image_update.image_buffer->size();
+							Vec2 normalized_point = chain->offset / frame->image_buffer()->size();
 							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
 
 							points.push_back(center << 0.01);
@@ -532,14 +530,14 @@ namespace TransformFlow {
 						std::vector<Vec3> points;
 
 						{
-							Vec2 normalized_point = segment.start() / frame->image_update.image_buffer->size();
+							Vec2 normalized_point = segment.start() / frame->image_buffer()->size();
 							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
 
 							points.push_back(center << 0.01);
 						}
 
 						{
-							Vec2 normalized_point = segment.end() / frame->image_update.image_buffer->size();
+							Vec2 normalized_point = segment.end() / frame->image_buffer()->size();
 							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
 
 							points.push_back(center << 0.01);
@@ -577,7 +575,7 @@ namespace TransformFlow {
 				//frame->debug_particles->add(at, Vec3(0.5, 0.5, 0.0), Vec3(0.0, 0.0, -1.0), Vec2u(0, 0), Vec3(0.2, 0.8, 0.3));
 				
 				std::size_t index = 0;
-				for (auto point : frame->image_update.feature_points->offsets()) {
+				for (auto point : frame->feature_points()->offsets()) {
 					Vec2 center = Vec2(point) / _scale;
 					center += frame->image_box.min();
 					Vec3 feature_center = frame->global_transform * (center << 0.0);
@@ -585,7 +583,7 @@ namespace TransformFlow {
 					RealT distance = (feature_center - at).length();
 					if (!closest_feature_points || closest_distance > distance) {
 						frame_offset_index = offset;
-						closest_feature_points = frame->image_update.feature_points;
+						closest_feature_points = frame->feature_points();
 						closest_offset_index = index;
 						closest_distance = distance;
 					}
@@ -629,7 +627,7 @@ namespace TransformFlow {
 			double duration = double(end - start) / CLOCKS_PER_SEC;
 			logger()->log(LOG_DEBUG, LogBuffer() << "Time = " << duration);
 			
-			_pixel_buffer_renderer->invalidate(next->image_update.image_buffer);
+			_pixel_buffer_renderer->invalidate(next->image_buffer());
 		
 			return true;
 		} else {
@@ -642,7 +640,7 @@ namespace TransformFlow {
 		
 		frame->find_vertical_edges();
 		
-		_pixel_buffer_renderer->invalidate(frame->image_update.image_buffer);
+		_pixel_buffer_renderer->invalidate(frame->image_buffer());
 	}
 
 	bool VideoStreamRenderer::apply_feature_algorithm() {
@@ -654,14 +652,14 @@ namespace TransformFlow {
 
 			Ref<MatchingAlgorithm> matching_algorithm = matchingAlgorithmUsingORB();
 
-			Mat44 homography = matching_algorithm->calculate_local_transform(frame->image_update, next->image_update);
+			Mat44 homography = matching_algorithm->calculate_local_transform(*frame->video_frame.image_update, *next->video_frame.image_update);
 			logger()->log(LOG_DEBUG, LogBuffer() << "Homography: " << std::endl << homography);
 			next->local_transform = homography;
 			next->global_transform = homography * frame->global_transform;
 			next->global_transform = frame->global_transform * homography;
 
 			std::clock_t start = std::clock();
-			Vec2 translation = matching_algorithm->calculate_local_translation(frame->image_update, next->image_update);
+			Vec2 translation = matching_algorithm->calculate_local_translation(*frame->video_frame.image_update, *next->video_frame.image_update);
 			Vec2 offset = -translation / image_box.size();
 			std::clock_t end = std::clock();
 			double duration = double(end - start) / CLOCKS_PER_SEC;

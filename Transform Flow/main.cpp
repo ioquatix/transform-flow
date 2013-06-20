@@ -31,6 +31,8 @@
 #include "VideoStream.h"
 #include "VideoStreamRenderer.h"
 
+#include "BasicSensorMotionModel.h"
+
 namespace TransformFlow {
 	using namespace Dream;
 	using namespace Dream::Events;
@@ -356,21 +358,21 @@ namespace TransformFlow {
 				auto & first_image_update = this->_video_stream->images().at(range[0]);
 
 				buffer << "Gravity: " << first_image_update.gravity << std::endl;
-				buffer << "Time Offset: " << first_image_update.time_offset << std::endl;
-				buffer << "Tilt: " << first_image_update.tilt() * R2D << std::endl;
+				buffer << "Time Offset: " << first_image_update.image_update->time_offset << std::endl;
+				//buffer << "Tilt: " << first_image_update.tilt() * R2D << std::endl;
 
 				auto index = this->_video_stream_renderer->selected_feature_point();
-				auto & image_update = this->_video_stream->images().at(index[0]);
+				auto & image_update = this->_video_stream->images().at(index[0]).image_update;
 
 				buffer << "Feature Index: " << index << std::endl;
 
-				if (image_update.feature_points && image_update.feature_points->offsets().size() > index[1]) {
-					auto feature = image_update.feature_points->offsets().at(index[1]);
-					buffer << "Feature Offset: " << feature << std::endl;
-				}
+				//if (image_update->feature_points && image_update->feature_points->offsets().size() > index[1]) {
+				//	auto feature = image_update->feature_points->offsets().at(index[1]);
+				//	buffer << "Feature Offset: " << feature << std::endl;
+				//}
 
-				if (image_update.image_buffer) {
-					buffer << "Frame Size: " << image_update.image_buffer->size() << std::endl;
+				if (image_update->image_buffer) {
+					buffer << "Frame Size: " << image_update->image_buffer->size() << std::endl;
 				}
 				
 				buffer << "Frame Index: " << range << std::endl;
@@ -417,9 +419,11 @@ namespace TransformFlow {
 
 		Path root_data_path = "/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/";
 
-		Path data_path = root_data_path + "VideoStream-2013-05-22-18-13-23";
-		
-		Ref<VideoStream> video_stream = new VideoStream(data_path);
+		Path data_path = root_data_path + "VideoStream-2013-06-17-14-04-34";
+
+		Ref<MotionModel> motion_model = new BasicSensorMotionModel;
+
+		Ref<VideoStream> video_stream = new VideoStream(data_path, motion_model);
 		
 		Ref<ImageSequenceScene> image_sequence_scene = new ImageSequenceScene;
 		image_sequence_scene->set_video_stream(video_stream);

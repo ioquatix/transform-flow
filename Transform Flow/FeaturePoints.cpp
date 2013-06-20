@@ -111,21 +111,21 @@ namespace TransformFlow {
 		
 		_source = source;
 		
-		Vec3u size = source->size();
+		Vec2u size = source->size();
 		
 		std::size_t dy = std::max<std::size_t>(size[Y] / 40, 2);
 		std::size_t dx = std::max<std::size_t>(size[X] / 40, 2);
 
-		for (std::size_t y = dy; y < size[Y]; y += dy) {
-			features_along_line(source, Vec2i(dx, y), Vec2i(size[X] - dx, y), _offsets);
-		}
-		
-		//for (std::size_t x = dx; x < size[X]; x += dx) {
-		//	features_along_line(source_image, Vec2i(x, dy), Vec2i(x, size[Y] - dy), _offsets);
+		//for (std::size_t y = dy; y < size[Y]; y += dy) {
+		//	features_along_line(source, Vec2i(dx, y), Vec2i(size[X] - dx, y), _offsets);
 		//}
+		
+		for (std::size_t x = dx; x < size[X]; x += dx) {
+			features_along_line(source, Vec2i(x, dy), Vec2i(x, size[Y] - dy), _offsets);
+		}
 
-		_table = new FeatureTable(size.length() / 3, _source->size());
-		_table->update(this);
+		_table = new FeatureTable(size.length() / 3, AlignedBox2::from_origin_and_size(0, size), R90);
+		_table->update(_offsets);
 
 		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");
 	}
@@ -149,7 +149,7 @@ namespace TransformFlow {
 
 			_bounding_box = bounds;
 
-			_table = new FeatureTable(size.length() / 3, size);
+			//_table = new FeatureTable(size.length() / 3, size);
 		}
 
 		{
@@ -194,7 +194,7 @@ namespace TransformFlow {
 		//	features_along_line(source_image, Vec2i(x, dy), Vec2i(x, size[Y] - dy), _offsets);
 		//}
 
-		_table->update(this);
+		//_table->update(this);
 
 		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");		
 	}

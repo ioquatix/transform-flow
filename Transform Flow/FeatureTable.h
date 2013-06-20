@@ -11,6 +11,7 @@
 
 #include <Dream/Class.h>
 #include "FeaturePoint.h"
+#include <Euclid/Geometry/AlignedBox.h>
 
 #include <vector>
 #include <list>
@@ -18,6 +19,7 @@
 namespace TransformFlow
 {
 	using namespace Dream;
+	using namespace Euclid::Geometry;
 
 	class FeaturePoints;
 
@@ -25,7 +27,7 @@ namespace TransformFlow
 	{
 	public:
 		struct Chain {
-			Vec2 offset;
+			Vec2 aligned_offset, offset;
 			Chain * next;
 		};
 
@@ -36,6 +38,9 @@ namespace TransformFlow
 	protected:
 		Vec2u _size;
 
+		Mat22 _rotation;
+		AlignedBox2 _bounds;
+
 		std::vector<Chain *> _chains;
 		std::vector<Bin> _bins;
 
@@ -44,9 +49,9 @@ namespace TransformFlow
 		Chain * find_previous_similar(Vec2 offset, std::size_t index);
 
 	public:
-		FeatureTable(std::size_t bins, Vec2u size);
+		FeatureTable(std::size_t bins, const AlignedBox2 & bounds, const Radians<> & rotation);
 
-		void update(FeaturePoints * feature_points);
+		void update(const std::vector<Vec2> & offsets);
 
 		const std::vector<Chain *> & chains() { return _chains; }
 	};
