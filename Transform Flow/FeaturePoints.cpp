@@ -130,7 +130,7 @@ namespace TransformFlow {
 		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");
 	}
 
-	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & gravity_rotation)
+	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt)
 	{
 		if (_offsets.size()) return;
 		
@@ -139,7 +139,7 @@ namespace TransformFlow {
 
 		{
 			// Forward rotation, create a bounding box where -y is "down".
-			Mat22 rotation = rotate<Z>(gravity_rotation);
+			Mat22 rotation = rotate<Z>(tilt);
 
 			Vec2 size = _source->size();
 
@@ -148,13 +148,11 @@ namespace TransformFlow {
 			bounds.union_with_point(rotation * Vec2(0, size[Y]));
 
 			_bounding_box = bounds;
-
-			//_table = new FeatureTable(size.length() / 3, size);
 		}
 
 		{
 			// Now we need to enumerate lines in the "rotated" space, and translate them back to image space:
-			Mat22 rotation = rotate<Z>(-gravity_rotation);
+			Mat22 rotation = rotate<Z>(-tilt);
 
 			Vec2u size = bounds.size();
 
@@ -185,7 +183,7 @@ namespace TransformFlow {
 
 					_segments.push_back(clipped_segment);
 
-					//features_along_line(source, clipped_segment.start(), clipped_segment.end(), _offsets);
+					features_along_line(source, clipped_segment.start(), clipped_segment.end(), _offsets);
 				}
 			}
 		}
@@ -195,6 +193,9 @@ namespace TransformFlow {
 		//}
 
 		//_table->update(this);
+
+		_table = new FeatureTable(bounds.size().length() / 3, bounds, tilt);
+		_table->update(_offsets);
 
 		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");		
 	}

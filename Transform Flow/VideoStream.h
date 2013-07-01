@@ -23,6 +23,7 @@ namespace TransformFlow {
 
 				Vec3 gravity;
 				double bearing;
+				Radians<> tilt = 0;
 
 				Ref<FeaturePoints> feature_points;
 

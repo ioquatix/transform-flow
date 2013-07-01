@@ -21,7 +21,8 @@ namespace TransformFlow {
 		watch.start();
 
 		feature_points = new FeaturePoints;
-		feature_points->scan(image_update->image_buffer);
+		//feature_points->scan(image_update->image_buffer);
+		feature_points->scan(image_update->image_buffer, tilt);
 
 		watch.pause();
 		log_debug("Feature Point Scan:", watch.time());
@@ -39,6 +40,7 @@ namespace TransformFlow {
 				video_frame.image_update = image_update;
 				video_frame.gravity = _motion_model->gravity();
 				video_frame.bearing = _motion_model->bearing();
+				video_frame.tilt = R90;
 
 				video_frame.calculate_feature_points();
 
