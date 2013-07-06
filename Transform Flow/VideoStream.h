@@ -21,9 +21,11 @@ namespace TransformFlow {
 			{
 				Shared<ImageUpdate> image_update;
 
-				Vec3 gravity;
-				double bearing;
-				Radians<> tilt = 0;
+				// In device coordinate space:
+				Vec3 gravity, heading;
+
+				Radians<> bearing;
+				Radians<> tilt;
 
 				Ref<FeaturePoints> feature_points;
 

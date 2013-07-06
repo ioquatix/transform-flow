@@ -100,6 +100,8 @@ namespace TransformFlow {
 
 			// We are just concerned with horizontal offset:
 			auto f = aligned_offset[X] / _size[X];
+			DREAM_ASSERT(f >= 0 && f < 1);
+			
 			std::size_t index = f * _bins.size();
 
 			auto & bin = _bins.at(index);

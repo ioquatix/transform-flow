@@ -547,6 +547,10 @@ namespace TransformFlow {
 					}
 
 					binding.set_uniform("major_color", Vec4(0.6, 0.4, 1.0, 0.8));
+					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix());
+
+					_wireframe_renderer->render(LineSegment2(ZERO, frame->video_frame.heading * 10));
+					_wireframe_renderer->render(LineSegment2(ZERO, frame->video_frame.gravity * 10));
 				}
 
 				offset += 1;

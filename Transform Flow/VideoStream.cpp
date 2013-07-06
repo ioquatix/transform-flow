@@ -11,6 +11,7 @@
 
 #include <Euclid/Numerics/Interpolate.h>
 #include <Euclid/Numerics/Transforms.h>
+#include <Euclid/Geometry/Plane.h>
 
 namespace TransformFlow {
 	using namespace Dream::Events::Logging;
@@ -40,7 +41,19 @@ namespace TransformFlow {
 				video_frame.image_update = image_update;
 				video_frame.gravity = _motion_model->gravity();
 				video_frame.bearing = _motion_model->bearing();
-				video_frame.tilt = R90;
+
+				// This is in device-space/image-space.
+				{
+					Vec3 north{0, 0, -1};
+
+					video_frame.heading = Quat(rotate<Z>(-video_frame.bearing)) * north;
+
+					Plane3 flat_plane(Vec3{0}, video_frame.heading);
+					Vec3 planar_gravity = flat_plane.closest_point(video_frame.gravity);
+
+					video_frame.tilt = planar_gravity.angle_between({1, 0, 0});
+					log_debug("Calculated tilt:", video_frame.tilt.value * R2D);
+				}
 
 				video_frame.calculate_feature_points();
 

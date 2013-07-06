@@ -51,6 +51,7 @@ namespace TransformFlow
 		virtual ~MotionUpdate();
 		virtual void apply(MotionModel * model);
 
+		// In radians/second.
 		Vec3 rotation_rate;
 		Vec3 acceleration;
 		Vec3 gravity;
@@ -104,7 +105,7 @@ namespace TransformFlow
 
 			const Vec3 & gravity() const { return _gravity; }
 			const Vec3 & position() const { return _position; }
-			RealT bearing() const { return _bearing; }
+			Radians<> bearing() const { return degrees(_bearing); }
 	};
 }
 

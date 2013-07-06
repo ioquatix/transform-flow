@@ -17,6 +17,10 @@ namespace TransformFlow {
 
 	// Bresenham's Line Drawing Algorithm
 	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
+		// We want the algorithm to work with the origin in the bottom left, not the top left.
+		start[Y] = image->size()[HEIGHT] - start[Y];
+		end[Y] = image->size()[HEIGHT] - end[Y];
+
 		bool steep = abs(end[Y] - start[Y]) > abs(end[X] - start[X]);
 		
 		if (steep) {
@@ -47,6 +51,7 @@ namespace TransformFlow {
 		unsigned step = std::max<unsigned>((end - start).length() / 100, 1);
 
 		auto image_reader = reader(*image);
+		auto image_writer = writer(*image);
 
 		for (int x = start[X]; x < end[X]; x += 1) {
 			if (steep) {
@@ -95,6 +100,8 @@ namespace TransformFlow {
 			count += 1;
 			offset[1] = offset[0];
 			pixel[1] = pixel[0];
+
+			image_writer.set(offset[0], Vector<3, ByteT>{0, 255, 0});
 		}
 	}
 	
@@ -135,9 +142,12 @@ namespace TransformFlow {
 		if (_offsets.size()) return;
 		
 		_source = source;
-		AlignedBox2 bounds = ZERO, image_box(ZERO, _source->size());
+		AlignedBox2 image_box(ZERO, _source->size());
+		image_box.set_center_and_size(image_box.center(), image_box.size() * 0.9);
 
 		{
+			AlignedBox2 bounds = ZERO;
+
 			// Forward rotation, create a bounding box where -y is "down".
 			Mat22 rotation = rotate<Z>(tilt);
 
@@ -154,32 +164,24 @@ namespace TransformFlow {
 			// Now we need to enumerate lines in the "rotated" space, and translate them back to image space:
 			Mat22 rotation = rotate<Z>(-tilt);
 
-			Vec2u size = bounds.size();
+			auto size = _bounding_box.size();
 
-			std::size_t dy = std::max<std::size_t>(size[Y] / 40, 2);
-			std::size_t dx = std::max<std::size_t>(size[X] / 40, 2);
+			auto dy = std::max<std::size_t>(size.length() / 40, 2);
+			auto dx = std::max<std::size_t>(size.length() / 40, 2);
 
-			// Assume the mid point is fixed for demo purposes:
-			float mid = size[Y] / 2.0, half_size = size[Y] / 2.0;
-
-			for (std::size_t y = bounds.min()[Y] + dy; y < bounds.max()[Y]; y += dy) {
-				// d goes from -1 to 1
-				//float d = (float)(y - mid) / half_size;
-				//float e = linear_interpolate(d*d, 0.0, 1.0);
-				//if (d < 0.0) e *= -1;
-				//float yd = e * half_size + mid;
-
-				Vec2 min(bounds.min()[X], y), max(bounds.max()[X], y);
+			for (auto y = _bounding_box.min()[Y] + dy; (y + dy) < _bounding_box.max()[Y]; y += dy) {
+				Vec2 min(_bounding_box.min()[X], y), max(_bounding_box.max()[X], y);
 
 				// This segment is now in image space, perpendicular to gravity.
 				LineSegment2 segment(rotation * min, rotation * max), clipped_segment;
+				//_segments.push_back(segment);
 
-				//log_debug("Features along line segment:", segment.start(), segment.end());
+				log_debug("Features along line segment:", segment.start(), segment.end(), segment.direction());
 
 				if (segment.clip(image_box, clipped_segment)) {
-					DREAM_ASSERT(clipped_segment.direction().equivalent(segment.direction()));
-
-					//log_debug("Clipped line segment:", segment.start(), segment.end());
+					log_debug("Clipped line segment:", segment.start(), segment.end(), segment.direction());
+					
+					//DREAM_ASSERT(clipped_segment.direction().equivalent(segment.direction()));
 
 					_segments.push_back(clipped_segment);
 
@@ -194,8 +196,8 @@ namespace TransformFlow {
 
 		//_table->update(this);
 
-		_table = new FeatureTable(bounds.size().length() / 3, bounds, tilt);
-		_table->update(_offsets);
+		_table = new FeatureTable(_bounding_box.size().length() / 3, _bounding_box, tilt);
+		//_table->update(_offsets);
 
 		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");		
 	}

@@ -41,7 +41,7 @@ namespace TransformFlow {
 	using namespace Dream::Client::Display;
 	using namespace Dream::Client::Graphics;
 	using namespace Euclid;
-		
+	
 	class ImageSequenceScene : public Scene
 	{
 	protected:
@@ -274,7 +274,42 @@ namespace TransformFlow {
 		
 		return Scene::resize(input);
 	}
-	
+
+	static bool BirdsEyeCamera_motion(BirdsEyeCamera & camera, const MotionInput & input) {
+		const Vec3 & d = input.motion();
+
+		if (input.button_pressed_or_dragged(MouseLeftButton)) {
+			RealT k = -1.0, i = number(camera.incidence().value).modulo(R360);
+
+			if (i < 0) i += R360;
+
+			// Reverse motion if we are upside down:
+			if (camera.reverse() && i > R180 && i < R360)
+				k *= -1.0;
+
+			// Find the relative position of the mouse, if it is in the lower half,
+			// reverse the rotation.
+			Vec2 relative = input.bounds().relative_offset_of(input.current_position().reduce());
+
+			//logger()->log(LOG_DEBUG, LogBuffer() << "Motion: " << d);
+
+			// If mouse button is in lower half of view:
+			if (relative[Y] <= 0.5)
+				k *= -1.0;
+
+			camera.set_azimuth(camera.azimuth() + degrees(k * d[X] * camera.multiplier()[X]));
+			camera.set_incidence(camera.incidence() + degrees(d[Y] * camera.multiplier()[Y]));
+
+			return true;
+		} else if (input.key().button() == MouseScroll) {
+			camera.set_distance(camera.distance() + (d[Y] * camera.multiplier()[Z]));
+						
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	bool ImageSequenceScene::motion (const MotionInput & input) {
 		if (input.button_pressed(MouseLeftButton)) {
 			if (_video_stream_renderer->select_feature_point(input.current_position().reduce())) {
@@ -282,7 +317,7 @@ namespace TransformFlow {
 			}
 		}
 		
-		return _camera->process(input);
+		return BirdsEyeCamera_motion(*_camera, input);
 	}
 	
 	bool ImageSequenceScene::button (const ButtonInput & input)
@@ -358,6 +393,7 @@ namespace TransformFlow {
 				auto & first_image_update = this->_video_stream->images().at(range[0]);
 
 				buffer << "Gravity: " << first_image_update.gravity << std::endl;
+				buffer << "Tilt: " << first_image_update.tilt.value * R2D << std::endl;
 				buffer << "Time Offset: " << first_image_update.image_update->time_offset << std::endl;
 				//buffer << "Tilt: " << first_image_update.tilt() * R2D << std::endl;
 
@@ -419,7 +455,7 @@ namespace TransformFlow {
 
 		Path root_data_path = "/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/";
 
-		Path data_path = root_data_path + "VideoStream-2013-06-17-14-04-34";
+		Path data_path = root_data_path + "VideoStream-2013-06-17-14-04-57";
 
 		Ref<MotionModel> motion_model = new BasicSensorMotionModel;
 
