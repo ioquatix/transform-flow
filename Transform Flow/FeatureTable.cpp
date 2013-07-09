@@ -47,7 +47,7 @@ namespace TransformFlow {
 
 	FeatureTable::Chain * FeatureTable::find_previous_similar(Vec2 aligned_offset, std::size_t index)
 	{
-		const Vec2 MAX_DISPLACEMENT = {2, 15};
+		const Vec2 MAX_DISPLACEMENT = {4, 25};
 
 		Chain * best_chain = nullptr;
 		Vec2 best_displacement;
@@ -76,7 +76,7 @@ namespace TransformFlow {
 
 			//DREAM_ASSERT(previous_chain->offset[Y] < offset[Y]);
 
-			log_debug("*", previous_chain->offset, "displacement", displacement);
+			//log_debug("*", previous_chain->offset, "displacement", displacement);
 
 			// Displacement constants
 			if (displacement[X] > MAX_DISPLACEMENT[X] || displacement[Y] > MAX_DISPLACEMENT[Y]) continue;

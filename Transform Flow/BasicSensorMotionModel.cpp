@@ -57,10 +57,10 @@ namespace TransformFlow
 			// Calculate the rotation around gravity, rotation rate is in radians/second
 			auto rotation = motion_update.rotation_rate * dt;
 
-			auto rotation_about_gravity = _gravity.dot(rotation);
+			auto rotation_about_gravity = _gravity.dot(rotation) * R2D;
 
 			if (_heading_primed) {
-				_bearing = interpolateAnglesDegrees(_bearing + rotation_about_gravity, _heading_update.true_bearing, 0.05);
+				_bearing = interpolateAnglesDegrees(_bearing + rotation_about_gravity, _heading_update.true_bearing, 0.001);
 			}
 		} else {
 			_motion_primed = true;

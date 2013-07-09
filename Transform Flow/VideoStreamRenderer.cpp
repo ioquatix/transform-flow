@@ -286,8 +286,10 @@ namespace TransformFlow {
 		
 		_frame_index = 0;
 		_feature_index = 1;
-		
+
 		_scale = 20.0;
+
+		_axis_renderer = new AxisRenderer(renderer_state);
 	}
 	
 	VideoStreamRenderer::~VideoStreamRenderer() {
@@ -297,7 +299,7 @@ namespace TransformFlow {
 	void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream) {
 		if (_frame_cache.size() != 0) return;
 		
-		Vec3 down(-1, 0, 0);
+		Vec3 down(0, 0, -1);
 
 		// Transform the video from camera space to device space:
 		Mat44 device_transform = translate(Vec3{0, 25, 0}) << rotate<X>(R90);
@@ -305,8 +307,6 @@ namespace TransformFlow {
 		// Faux rotation
 		//Mat44 rotation(IDENTITY);
 		Shared<FrameCache> previous;
-
-		TimeT first_time = video_stream->images().front().image_update->time_offset;
 		
 		for (auto & frame : video_stream->images()) {
 			if (frame.gravity.equivalent(0))
@@ -324,20 +324,19 @@ namespace TransformFlow {
 			// The initial transform is the device transform:
 			cache->global_transform = IDENTITY;
 
-			// Apply the rotation as calculated by the gyroscope:
-			//Mat44 gyroscope_rotation = video_stream->rotation_between(first_time, frame.time_offset);
-			//cache->global_transform = cache->global_transform << gyroscope_rotation;
+			// Calculate the transform applied by gravity:
+			if (0) {
+				auto angle = down.angle_between(frame.gravity);
+				if (!number(angle.value).equivalent(0)) {
+					Vec3 s = cross_product(down, frame.gravity);
 
-			// Correct for gravity/accelerometer measurements:
-			auto angle = down.angle_between(frame.gravity);
-			if (!equivalent(angle.value, 0) && _alignment_mode > 0) {
-				Vec3 s = cross_product(down, frame.gravity);
-
-				Mat44 gravity_rotation = rotate(angle, -s);
-				cache->global_transform = cache->global_transform << gravity_rotation;
+					Mat44 gravity_rotation = rotate(angle, s);
+					cache->global_transform = cache->global_transform << gravity_rotation;
+				}
 			}
 
-			cache->global_transform = device_transform << cache->global_transform;
+			cache->global_transform = cache->global_transform << rotate(R180 - frame.tilt, frame.heading);
+			cache->global_transform = rotate<Z>(-frame.bearing) << device_transform << cache->global_transform;
 
 			// Calculate the local transform, if any:
 			if (previous) {
@@ -375,11 +374,7 @@ namespace TransformFlow {
 			std::size_t start = _start, count = _count, offset = 0;
 			
 			glEnable(GL_DEPTH_TEST);
-			//glEnable(GL_BLEND);
-			// Nice for constant alpha
-			//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_DST_ALPHA);
-			//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			
+
 			auto binding = _frame_program->binding();
 			binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix());
 						
@@ -410,7 +405,6 @@ namespace TransformFlow {
 				offset += 1;
 			}
 
-			//glDisable(GL_BLEND);
 			glDisable(GL_DEPTH_TEST);
 		}
 		
@@ -422,7 +416,7 @@ namespace TransformFlow {
 
 			for (auto & frame : _frame_cache) {
 				binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->global_transform);
-				binding.set_uniform("major_color", Vec4(0.5, 0.5, 1.0, 1.0));
+				binding.set_uniform("major_color", Vec4(0.5, 0.5, 1.0, 0.5));
 
 				//std::size_t index = 0;
 				//for (auto point : frame->image_update.feature_points->offsets()) {
@@ -486,16 +480,22 @@ namespace TransformFlow {
 				
 				offset += 1;
 			}
-			
+
+			_axis_renderer->render(IDENTITY);
+
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);
 		}
 
 		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 			std::size_t start = _start, count = _count, offset = 0;
 			auto binding = _wireframe_program->binding();
 			
 			glDepthMask(GL_FALSE);
+			
 			for (auto & frame : _frame_cache) {
 				binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->global_transform);
 				binding.set_uniform("major_color", Vec4(0.4, 0.4, 0.4, 0.4));
@@ -506,7 +506,7 @@ namespace TransformFlow {
 
 				if (offset == _start) {
 					Ref<FeatureTable> table = feature_points->table();
-					binding.set_uniform("major_color", Vec4(1.0, 0.4, 0.4, 0.4));
+					binding.set_uniform("major_color", Vec4(1.0, 0.4, 0.4, 0.89));
 
 					for (auto chain : table->chains()) {
 						std::vector<Vec3> points;
@@ -523,7 +523,7 @@ namespace TransformFlow {
 						_wireframe_renderer->render(points, LINE_STRIP);
 					}
 					
-					binding.set_uniform("major_color", Vec4(0.4, 0.2, 1.0, 0.4));
+					binding.set_uniform("major_color", Vec4(0.1, 0.2, 1.0, 0.75));
 
 					// *** Render horizontal scan lines
 					for (auto & segment : feature_points->segments()) {
@@ -545,17 +545,13 @@ namespace TransformFlow {
 
 						_wireframe_renderer->render(points, LINE_STRIP);
 					}
-
-					binding.set_uniform("major_color", Vec4(0.6, 0.4, 1.0, 0.8));
-					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix());
-
-					_wireframe_renderer->render(LineSegment2(ZERO, frame->video_frame.heading * 10));
-					_wireframe_renderer->render(LineSegment2(ZERO, frame->video_frame.gravity * 10));
 				}
 
 				offset += 1;
 			}
+			
 			glDepthMask(GL_TRUE);
+			glDisable(GL_BLEND);
 		}
 	}
 

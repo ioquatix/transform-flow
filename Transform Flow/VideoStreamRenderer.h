@@ -23,6 +23,7 @@
 #include <Dream/Client/Graphics/ParticleRenderer.h>
 
 #include "FeatureAlgorithm.h"
+#include "AxisRenderer.h"
 
 namespace TransformFlow {
 	using namespace Dream::Renderer;
@@ -60,12 +61,14 @@ namespace TransformFlow {
 	class VideoStreamRenderer : public Object {
 	protected:
 		Ref<RendererState> _renderer_state;
-		
+
 		Ref<MarkerRenderer> _marker_renderer, _billboard_marker_renderer;
 		Ref<WireframeRenderer> _wireframe_renderer;
 		Ref<ImageRenderer> _pixel_buffer_renderer;
 		Ref<Program> _frame_program, _wireframe_program;
-		
+
+		Ref<AxisRenderer> _axis_renderer;
+
 		AlignmentMode _alignment_mode;
 		RealT _scale;
 		

@@ -44,7 +44,7 @@ namespace TransformFlow {
 		std::clock_t end = std::clock();
 		double duration = double(end - start) / CLOCKS_PER_SEC;
 
-		log_debug("Keypoint Detection Time:", duration, "count =", key_points.size());
+		//log_debug("Keypoint Detection Time:", duration, "count =", key_points.size());
 
 		std::vector<Vec2> features;
 		for (cv::KeyPoint key_point : key_points) {

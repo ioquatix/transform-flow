@@ -80,9 +80,7 @@ namespace TransformFlow
 		} else {
 			_frames.resize(index+1);
 		}
-		
-		logger()->log(LOG_DEBUG, LogBuffer() << "Loading frame " << index);
-		
+				
 		return (_frames[index] = _loader->load<Image>(to_string(index)));
 	}
 	

@@ -26,7 +26,8 @@ namespace TransformFlow {
 		feature_points->scan(image_update->image_buffer, tilt);
 
 		watch.pause();
-		log_debug("Feature Point Scan:", watch.time());
+
+		//log_debug("Feature Point Scan:", watch.time());
 	}
 
 	VideoStream::VideoStream(const Path & path, Ref<MotionModel> motion_model) : _sensor_data(new SensorData(path)), _motion_model(motion_model)
@@ -52,12 +53,12 @@ namespace TransformFlow {
 					Vec3 planar_gravity = flat_plane.closest_point(video_frame.gravity);
 
 					video_frame.tilt = planar_gravity.angle_between({1, 0, 0});
-					log_debug("Calculated tilt:", video_frame.tilt.value * R2D);
+					//log_debug("Calculated tilt:", video_frame.tilt.value * R2D);
 				}
 
 				video_frame.calculate_feature_points();
 
-				log_debug("Video Frame", "Gravity", video_frame.gravity, "Bearing", video_frame.bearing);
+				//log_debug("Video Frame", "Gravity", video_frame.gravity, "Bearing", video_frame.bearing);
 
 				_images.push_back(video_frame);
 			}

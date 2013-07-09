@@ -51,7 +51,7 @@ namespace TransformFlow {
 		unsigned step = std::max<unsigned>((end - start).length() / 100, 1);
 
 		auto image_reader = reader(*image);
-		auto image_writer = writer(*image);
+		//auto image_writer = writer(*image);
 
 		for (int x = start[X]; x < end[X]; x += 1) {
 			if (steep) {
@@ -73,7 +73,7 @@ namespace TransformFlow {
 				
 				//logger()->log(LOG_DEBUG, LogBuffer() << "Pixel[0] = " << pixel[0] << " Pixel[1] = " << pixel[1] << " Distance = " << distance);
 				
-				if (distance > 10000) {
+				if (distance > 5000) {
 					Vec2 middle = offset[0] + offset[1];
 					middle /= 2.0;
 					//Vec2 middle = offset[1];
@@ -101,7 +101,7 @@ namespace TransformFlow {
 			offset[1] = offset[0];
 			pixel[1] = pixel[0];
 
-			image_writer.set(offset[0], Vector<3, ByteT>{0, 255, 0});
+			//image_writer.set(offset[0], Vector<3, ByteT>{0, 255, 0});
 		}
 	}
 	
@@ -134,7 +134,7 @@ namespace TransformFlow {
 		_table = new FeatureTable(size.length() / 3, AlignedBox2::from_origin_and_size(0, size), R90);
 		_table->update(_offsets);
 
-		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");
+		// logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");
 	}
 
 	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt)
@@ -176,10 +176,10 @@ namespace TransformFlow {
 				LineSegment2 segment(rotation * min, rotation * max), clipped_segment;
 				//_segments.push_back(segment);
 
-				log_debug("Features along line segment:", segment.start(), segment.end(), segment.direction());
+				//log_debug("Features along line segment:", segment.start(), segment.end(), segment.direction());
 
 				if (segment.clip(image_box, clipped_segment)) {
-					log_debug("Clipped line segment:", segment.start(), segment.end(), segment.direction());
+					//log_debug("Clipped line segment:", segment.start(), segment.end(), segment.direction());
 					
 					//DREAM_ASSERT(clipped_segment.direction().equivalent(segment.direction()));
 
@@ -190,15 +190,9 @@ namespace TransformFlow {
 			}
 		}
 
-		//for (std::size_t x = dx; x < size[X]; x += dx) {
-		//	features_along_line(source_image, Vec2i(x, dy), Vec2i(x, size[Y] - dy), _offsets);
-		//}
+		_table = new FeatureTable(_bounding_box.size().length() / 3, image_box, tilt);
+		_table->update(_offsets);
 
-		//_table->update(this);
-
-		_table = new FeatureTable(_bounding_box.size().length() / 3, _bounding_box, tilt);
-		//_table->update(_offsets);
-
-		logger()->log(LOG_INFO, LogBuffer() << "Found " << _offsets.size() << " feature points");		
+		log_debug("Found", _offsets.size(), "feature points.");
 	}
 }

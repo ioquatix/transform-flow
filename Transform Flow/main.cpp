@@ -455,7 +455,7 @@ namespace TransformFlow {
 
 		Path root_data_path = "/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/";
 
-		Path data_path = root_data_path + "VideoStream-2013-06-17-14-04-57";
+		Path data_path = root_data_path + "VideoStream-2013-07-09-16-04-47";
 
 		Ref<MotionModel> motion_model = new BasicSensorMotionModel;
 
