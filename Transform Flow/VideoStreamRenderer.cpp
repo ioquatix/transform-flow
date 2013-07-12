@@ -32,7 +32,7 @@ namespace TransformFlow {
 	void MarkerParticles::add(Vec3 center, Vec3 up, Vec3 forward, Vec2u mapping, Vec3 color) {
 		Particle particle;
 				
-		particle.set_position(center, up, forward, 0.0);
+		particle.set_position(center, up, forward, R0);
 		particle.color = color;
 		particle.set_mapping(Vec2u(2, 2), mapping);
 		
@@ -45,7 +45,8 @@ namespace TransformFlow {
 		
 		// Load particle program:
 		if (billboard) {
-			_particle_program = _renderer_state->load_program("Shaders/billboard-particle");
+			ShaderParser::DefinesMapT defines = {{"BILLBOARD", ""}};
+			_particle_program = _renderer_state->load_program("Shaders/particle", &defines);
 		} else {
 			_particle_program = _renderer_state->load_program("Shaders/particle");
 		}
@@ -299,7 +300,7 @@ namespace TransformFlow {
 	void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream) {
 		if (_frame_cache.size() != 0) return;
 		
-		Vec3 down(0, 0, -1);
+		Vec3 down(-1, 0, 0);
 
 		// Transform the video from camera space to device space:
 		Mat44 device_transform = translate(Vec3{0, 25, 0}) << rotate<X>(R90);
@@ -325,17 +326,18 @@ namespace TransformFlow {
 			cache->global_transform = IDENTITY;
 
 			// Calculate the transform applied by gravity:
-			if (0) {
+			{
 				auto angle = down.angle_between(frame.gravity);
 				if (!number(angle.value).equivalent(0)) {
 					Vec3 s = cross_product(down, frame.gravity);
 
-					Mat44 gravity_rotation = rotate(angle, s);
+					Mat44 gravity_rotation = rotate(angle, -s);
 					cache->global_transform = cache->global_transform << gravity_rotation;
 				}
 			}
 
-			cache->global_transform = cache->global_transform << rotate(R180 - frame.tilt, frame.heading);
+			//cache->global_transform = cache->global_transform << rotate(R180 - frame.tilt, frame.heading);
+
 			cache->global_transform = rotate<Z>(-frame.bearing) << device_transform << cache->global_transform;
 
 			// Calculate the local transform, if any:
@@ -481,9 +483,10 @@ namespace TransformFlow {
 				offset += 1;
 			}
 
+			glEnable(GL_DEPTH_TEST);
+
 			_axis_renderer->render(IDENTITY);
 
-			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);
 		}
 

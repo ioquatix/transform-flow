@@ -88,9 +88,6 @@ namespace TransformFlow {
 		virtual bool button (const ButtonInput & input);
 		virtual bool motion (const MotionInput & input);
 		virtual bool resize (const ResizeInput & input);
-				
-		GLuint compile_shader_of_type (GLenum type, StringT path);
-		Ref<Program> load_program(StringT name);
 		
 		virtual void render_frame_for_time (TimeT time);
 	};
@@ -98,44 +95,7 @@ namespace TransformFlow {
 	ImageSequenceScene::~ImageSequenceScene ()
 	{
 	}
-	
-	GLuint ImageSequenceScene::compile_shader_of_type (GLenum type, StringT name)
-	{
-		Ref<IData> data = resource_loader()->data_for_resource(name);
 		
-		if (data) {
-			return _shader_manager->compile(type, data->buffer().get());
-		} else {
-			return 0;
-		}
-	}
-	
-	Ref<Program> ImageSequenceScene::load_program(StringT name) {
-		GLuint vertex_shader = compile_shader_of_type(GL_VERTEX_SHADER, name + ".vertex-shader");
-		GLuint geometry_shader = compile_shader_of_type(GL_GEOMETRY_SHADER, name + ".geometry-shader");
-		GLuint fragment_shader = compile_shader_of_type(GL_FRAGMENT_SHADER, name + ".fragment-shader");
-		
-		Ref<Program> program = new Program;
-		
-		logger()->log(LOG_INFO, LogBuffer() << "Loading shader: " << name);
-		
-		DREAM_ASSERT(vertex_shader || geometry_shader || fragment_shader);
-		
-		if (vertex_shader)
-			program->attach(vertex_shader);
-		
-		if (geometry_shader)
-			program->attach(geometry_shader);
-		
-		if (fragment_shader)
-			program->attach(fragment_shader);
-		
-		program->link();
-		program->bind_fragment_location("fragment_color");
-				
-		return program;
-	}
-	
 	void ImageSequenceScene::will_become_current(ISceneManager * manager) {
 		Scene::will_become_current(manager);
 		
@@ -161,10 +121,17 @@ namespace TransformFlow {
 		parameters.mag_filter = GL_LINEAR;
 		parameters.target = GL_TEXTURE_2D;
 		
+		Ref<RendererState> renderer_state = new RendererState;
+		renderer_state->viewport = _viewport;
+		renderer_state->texture_manager = _texture_manager;
+		renderer_state->shader_manager = _shader_manager;
+		renderer_state->resource_loader = manager->resource_loader();
+		_video_stream_renderer = new VideoStreamRenderer(renderer_state);
+
 		{
 			_wireframe_renderer = new WireframeRenderer;
 			
-			_wireframe_program = load_program("Shaders/wireframe");
+			_wireframe_program = renderer_state->load_program("Shaders/wireframe");
 			_wireframe_program->set_attribute_location("position", WireframeRenderer::POSITION);
 			_wireframe_program->link();
 			
@@ -188,15 +155,7 @@ namespace TransformFlow {
 				attributes[POSITION] = &MeshT::VertexT::position;
 			}
 		}
-		
-		
-		Ref<RendererState> renderer_state = new RendererState;
-		renderer_state->viewport = _viewport;
-		renderer_state->texture_manager = _texture_manager;
-		renderer_state->shader_manager = _shader_manager;
-		renderer_state->resource_loader = manager->resource_loader();
-		_video_stream_renderer = new VideoStreamRenderer(renderer_state);
-		
+
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
@@ -369,15 +328,6 @@ namespace TransformFlow {
 		check_graphics_error();
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		{
-			auto binding = _wireframe_program->binding();
-			binding.set_uniform("display_matrix", _viewport->display_matrix());
-			
-			AlignedBox3 sphere_box(-4, 4);
-			_wireframe_renderer->render(sphere_box);
-			_wireframe_renderer->render_axis();
-		}
 
 		_video_stream_renderer->render_frame_for_time(time, _video_stream);
 
