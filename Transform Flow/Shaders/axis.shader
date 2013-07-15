@@ -4,7 +4,7 @@
 
 @vertex
 
-uniform mat4 display_matrix;
+uniform mat4 display_transform;
 
 in vec2 offset;
 in vec3 position;
@@ -17,7 +17,7 @@ out vec2 diffuse_mapping;
 
 void main () {
 	// Pointing towards scene:
-	vec3 w = normalize(vec3(display_matrix[0][2], display_matrix[1][2], display_matrix[2][2]));
+	vec3 w = normalize(vec3(display_transform[0][2], display_transform[1][2], display_transform[2][2]));
 
 	// Pointing outwards from axis:
 	vec3 u = normalize(cross(w, axis));
@@ -28,7 +28,7 @@ void main () {
 	diffuse_mapping = mapping;
 	surface_color = color;
 
-	gl_Position = display_matrix * vec4(corner, 1.0);
+	gl_Position = display_transform * vec4(corner, 1.0);
 }
 
 @fragment

@@ -127,7 +127,7 @@ namespace TransformFlow
 		
 		{
 			auto binding = _program->binding();
-			binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * global_transform);
+			binding.set_uniform("display_transform", _renderer_state->viewport->display_matrix() * global_transform);
 			
 			_renderer_state->texture_manager->bind(0, _texture);
 
