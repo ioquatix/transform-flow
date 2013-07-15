@@ -234,7 +234,7 @@ namespace TransformFlow {
 		return Scene::resize(input);
 	}
 
-	static bool BirdsEyeCamera_motion(BirdsEyeCamera & camera, const MotionInput & input) {
+	static bool camera_motion(BirdsEyeCamera & camera, const MotionInput & input) {
 		const Vec3 & d = input.motion();
 
 		if (input.button_pressed_or_dragged(MouseLeftButton)) {
@@ -276,7 +276,7 @@ namespace TransformFlow {
 			}
 		}
 		
-		return BirdsEyeCamera_motion(*_camera, input);
+		return camera_motion(*_camera, input);
 	}
 	
 	bool ImageSequenceScene::button (const ButtonInput & input)
