@@ -142,4 +142,66 @@ namespace TransformFlow {
 		
 		track from one frame to the next by scanning algorithm, adjust size based on edges, perhaps use binary search.
 	*/
+
+	struct AlignmentCost
+	{
+		int offset;
+		float error;
+
+		bool operator<(const AlignmentCost & other) const
+		{
+			return error < other.error;
+		}
+	};
+
+	template <typename SequenceT>
+	AlignmentCost calculate_alignment_cost(const SequenceT & a, const SequenceT & b, int offset)
+	{
+		AlignmentCost cost = {offset, 0};
+
+		std::size_t i = 0, j = 0;
+
+		if (offset > 0)
+			i = offset;
+		else
+			j = -offset;
+
+		while (i < a.size() && j < b.size())
+		{
+			auto d = number(int(a[i].links.size()) - int(b[j].links.size())).absolute();
+
+			cost.error += (d*d);
+
+			i += 1, j += 1;
+		}
+
+		return cost;
+	}
+
+	std::size_t FeatureTable::calculate_alignment(const FeatureTable & other)
+	{
+		// We try to find the alignment between two sequences:
+		std::priority_queue<AlignmentCost> ordered_costs;
+		std::vector<AlignmentCost> costs;
+
+		auto & a = _bins;
+		auto & b = other.bins();
+
+		// The size of the search, left or right of the origin:
+		const int F = 8;
+
+		int min = -(int(b.size()) / F);
+		int max = int(b.size()) / F;
+
+		for (int offset = min; offset < max; offset += 1)
+		{
+			auto cost = calculate_alignment_cost(a, b, offset);
+
+			log_debug("-- Calculated error at offset:", offset, "=", cost.error);
+
+			ordered_costs.push(cost);
+		}
+
+		return ordered_costs.top().offset;
+	}
 };

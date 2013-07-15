@@ -53,7 +53,10 @@ namespace TransformFlow
 
 		void update(const std::vector<Vec2> & offsets);
 
-		const std::vector<Chain *> & chains() { return _chains; }
+		const std::vector<Chain *> & chains() const { return _chains; }
+		const std::vector<Bin> bins() const { return _bins; }
+
+		std::size_t calculate_alignment(const FeatureTable & other);
 	};
 }
 

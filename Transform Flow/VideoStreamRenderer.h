@@ -110,7 +110,7 @@ namespace TransformFlow {
 			Vec2 pixel_coordinate_of_global_coordinate(Vec3 point);
 			Vec3 global_coordinate_of_pixel_coordinate(Vec2 point);
 			
-			void calculate_feature_transform(Shared<FrameCache> next);
+			void calculate_feature_transform(Shared<FrameCache> previous);
 			void select(std::size_t index);
 			
 			void find_vertical_edges();

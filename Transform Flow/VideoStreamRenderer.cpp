@@ -122,94 +122,15 @@ namespace TransformFlow {
 		return pixel_coordinate;
 	}
 	
-	void VideoStreamRenderer::FrameCache::calculate_feature_transform(Shared<FrameCache> next) {
-		// We want the local transform from the current frame to the next frame..
-		Vec2 point = feature_points()->offsets()[selected_feature_index];
-		
-		// Hard coded horizontal scanning - grab left and right pixel from source image:
-		Vector<3, ByteT> source_pixels[2], next_pixels[2];
+	void VideoStreamRenderer::FrameCache::calculate_feature_transform(Shared<FrameCache> previous) {
+		auto current_table = feature_points()->table();
+		auto previous_table = previous->feature_points()->table();
 
-		auto image_reader = reader(*image_buffer());
+		auto offset = previous_table->calculate_alignment(*current_table);
 
-		source_pixels[0] = image_reader[point];
-		source_pixels[1] = image_reader[point + vector(1, 0)];
+		log_debug(__PRETTY_FUNCTION__, "Offset", offset);
 
-		//image_update.image_buffer->read_pixel(point << 0, source_pixels[0]);
-		//image_update.image_buffer->read_pixel(point + Vec2(1, 0) << 0, source_pixels[1]);
-
-		// Calculate the 3d position of the feature by applying the frame's global transform to the image coordinate:
-		Vec3 global_coordinate = global_coordinate_of_pixel_coordinate(point);
-		
-		logger()->log(LOG_DEBUG, LogBuffer() << "Image box: " << image_box.min() << "->" << image_box.max() << " Offset: " << point << " Center: " << center);
-		logger()->log(LOG_DEBUG, LogBuffer() << "Global Coordinate: " << global_coordinate);
-		
-		debug_particles->add(global_coordinate, Vec3(0.1, 0.1, 0.0), Vec3(0, 0, 1.0), Vec2u(0, 0), Vec3(0, 0, 1));
-		
-		// Calculate the 3d position of the feature in the next frame by appling the local transform:
-		Vec3 forwards_transformed_coordinate = next->local_transform * global_coordinate;
-		
-		debug_particles->add(forwards_transformed_coordinate, Vec3(0.1, 0.1, 0.0), Vec3(0, 0, 1.0), Vec2u(0, 0), Vec3(0, 1, 0));
-		
-		// Calculate the pixel position of the feature in the next frame by applying the inverse global transform for the next frame:
-		Vec2 next_pixel_coordinate = next->pixel_coordinate_of_global_coordinate(global_coordinate);
-		
-		// If camera moves to left, vertical edges move to the right:
-		Vec2 delta = point - next_pixel_coordinate;
-		
-		// -5.62024 5.09367
-		// -44.62024 5.09367
-		
-		RealT minimum = 255.0 * 2.0;
-		std::size_t offset = 0, minimum_offset = 0;
-		
-		for (; offset < 60; offset += 1) {
-			Vec2 scan_point = next_pixel_coordinate + Vec2(offset, 0);
-			scan_point[Y] = next->image_buffer()->size()[HEIGHT] - scan_point[Y];
-			
-			next_pixels[0] = next_pixels[1];
-			next_pixels[1] = reader(*next->image_buffer())[scan_point];
-			
-			if (offset == 0)
-				continue;
-			
-			Vec3 difference[2] = {
-				Vec3(source_pixels[0]) - Vec3(next_pixels[0]),
-				Vec3(source_pixels[1]) - Vec3(next_pixels[1])
-			};
-						
-			RealT total = difference[0].length() + difference[1].length();
-			
-			if (total < minimum) {
-				minimum = total;
-				minimum_offset = offset;
-			}
-			
-			logger()->log(LOG_INFO, LogBuffer() << "Index: " << offset << " difference: " << total << " minimum: " << minimum << " @ " << minimum_offset);
-			
-			Ptr<Image> image = next->image_buffer();
-			// TODO: Fix image writer API:
-			auto intensity = std::max<ByteT>(255 - total, 0);
-			writer(*image).set(scan_point, Vector<3, ByteT>(intensity));
-		}
-		
-		//Vec2 corrected_delta(-50, 5.09367);
-		Vec2 corrected_delta(delta[X] - minimum_offset, delta[Y]);
-		Vec2 difference = corrected_delta - delta;
-		
-		logger()->log(LOG_INFO, LogBuffer() << "Delta: " << delta << " corrected: " << corrected_delta << " difference: " << difference);
-		
-		{
-			Vec3 global_offset = next->global_coordinate_of_pixel_coordinate(next_pixel_coordinate + difference);
-			
-			debug_particles->add(global_offset, Vec3(0.1, 0.1, 0.0), Vec3(0, 0, 1.0), Vec2u(0, 0), Vec3(1, 0, 0));
-			
-			//auto angle = global_coordinate.angle_between(global_offset);
-			//next->feature_transform = rotate<Y>(angle);
-
-			Vec2 offset = difference / image_box.size();
-			logger()->log(LOG_DEBUG, LogBuffer() << "Offset (Transform Flow): " << offset);
-			next->feature_transform = translate(offset);
-		}
+		feature_transform = translate(Vec2(offset, 0));
 	}
 	
 	void VideoStreamRenderer::FrameCache::select(std::size_t index) {
@@ -621,16 +542,17 @@ namespace TransformFlow {
 	bool VideoStreamRenderer::update_feature_transform() {
 		Shared<FrameCache> frame = _frame_cache[_frame_index];
 		
-		if (_frame_index+1 < _frame_cache.size() && frame->selected_feature_index != (std::size_t)-1) {
-			Shared<FrameCache> next = _frame_cache[_frame_index + 1];
+		if (_frame_index > 0) {
+			Shared<FrameCache> previous = _frame_cache[_frame_index - 1];
 
 			std::clock_t start = std::clock();
-			frame->calculate_feature_transform(next);
+			frame->calculate_feature_transform(previous);
 			std::clock_t end = std::clock();
 			double duration = double(end - start) / CLOCKS_PER_SEC;
 			logger()->log(LOG_DEBUG, LogBuffer() << "Time = " << duration);
-			
-			_pixel_buffer_renderer->invalidate(next->image_buffer());
+
+			// If we were drawing debugging information, we need to update the texture:
+			//_pixel_buffer_renderer->invalidate(next->image_buffer());
 		
 			return true;
 		} else {
