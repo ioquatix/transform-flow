@@ -126,11 +126,11 @@ namespace TransformFlow {
 		auto current_table = feature_points()->table();
 		auto previous_table = previous->feature_points()->table();
 
-		auto offset = previous_table->calculate_alignment(*current_table);
+		auto offset = previous_table->calculate_offset(*current_table);
 
-		log_debug(__PRETTY_FUNCTION__, "Offset", offset);
-
-		feature_transform = translate(Vec2(offset, 0));
+		// At least 3 vertical edges contributed to this sample:
+		if (offset.number_of_samples() > 3)
+			feature_transform = translate(Vec2(offset.value(), 0));
 	}
 	
 	void VideoStreamRenderer::FrameCache::select(std::size_t index) {

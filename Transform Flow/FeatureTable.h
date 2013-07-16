@@ -11,7 +11,9 @@
 
 #include <Dream/Class.h>
 #include "FeaturePoint.h"
+
 #include <Euclid/Geometry/AlignedBox.h>
+#include <Euclid/Numerics/Average.h>
 
 #include <vector>
 #include <list>
@@ -27,6 +29,7 @@ namespace TransformFlow
 	{
 	public:
 		struct Chain {
+			// Aligned offset is the offset in world coordinates. The offset itself is in pixel coordinates.
 			Vec2 aligned_offset, offset;
 			Chain * next;
 		};
@@ -56,7 +59,10 @@ namespace TransformFlow
 		const std::vector<Chain *> & chains() const { return _chains; }
 		const std::vector<Bin> bins() const { return _bins; }
 
-		std::size_t calculate_alignment(const FeatureTable & other);
+		int calculate_bin_offset(const FeatureTable & other) const;
+
+		Average<RealT> average_chain_position(std::size_t bin) const;
+		Average<RealT> calculate_offset(const FeatureTable & other) const;
 	};
 }
 

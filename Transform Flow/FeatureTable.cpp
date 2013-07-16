@@ -9,6 +9,8 @@
 #include "FeatureTable.h"
 #include "FeaturePoints.h"
 
+#include <Euclid/Numerics/Average.h>
+
 namespace TransformFlow {
 
 	using namespace Dream::Events::Logging;
@@ -148,9 +150,9 @@ namespace TransformFlow {
 		int offset;
 		float error;
 
-		bool operator<(const AlignmentCost & other) const
+		bool operator>(const AlignmentCost & other) const
 		{
-			return error < other.error;
+			return error > other.error;
 		}
 	};
 
@@ -178,17 +180,20 @@ namespace TransformFlow {
 		return cost;
 	}
 
-	std::size_t FeatureTable::calculate_alignment(const FeatureTable & other)
+	template <typename ItemT>
+	using PriorityQueueT = std::priority_queue<ItemT, std::vector<ItemT>, std::greater<ItemT>>;
+
+	int FeatureTable::calculate_bin_offset(const FeatureTable & other) const
 	{
 		// We try to find the alignment between two sequences:
-		std::priority_queue<AlignmentCost> ordered_costs;
+		PriorityQueueT<AlignmentCost> ordered_costs;
 		std::vector<AlignmentCost> costs;
 
 		auto & a = _bins;
 		auto & b = other.bins();
 
 		// The size of the search, left or right of the origin:
-		const int F = 8;
+		const int F = 32;
 
 		int min = -(int(b.size()) / F);
 		int max = int(b.size()) / F;
@@ -203,5 +208,58 @@ namespace TransformFlow {
 		}
 
 		return ordered_costs.top().offset;
+	}
+
+	Average<RealT> FeatureTable::average_chain_position(std::size_t bin) const
+	{
+		Average<RealT> distribution;
+		
+		for (auto & chain : _bins[bin].links)
+		{
+			log_debug("Adding chain, aligned_offset =", chain.aligned_offset, "offset =", chain.offset);
+			distribution.add_sample(chain.aligned_offset[X]);
+		}
+
+		return distribution;
+	}
+
+	Average<RealT> FeatureTable::calculate_offset(const FeatureTable & other) const
+	{
+		auto offset = calculate_bin_offset(other);
+		log_debug("Calculated bin offset", offset);
+
+		Average<RealT> distribution;
+
+		std::size_t i = 0, j = 0;
+
+		if (offset > 0)
+			i = offset;
+		else
+			j = -offset;
+
+		auto & a = _bins;
+		auto & b = other.bins();
+
+		while (i < a.size() && j < b.size())
+		{
+			auto a_distribution = average_chain_position(i);
+			auto b_distribution = other.average_chain_position(j);
+
+			// Increment counters:
+			i += 1, j += 1;
+
+			// If we don't have enough confidence in our distribution of vertical feature points, we skip this bin.
+			if (a_distribution.number_of_samples() < 3 || b_distribution.number_of_samples() < 3)
+				continue;
+
+			auto difference = b_distribution.value() - a_distribution.value();
+			log_debug("A", a_distribution.value(), "#", a_distribution.number_of_samples(), "B", b_distribution.value(), "#", b_distribution.number_of_samples(), "Difference", difference);
+			
+			distribution.add_sample(difference);
+		}
+
+		log_debug("Calculated offset", distribution.value(), "#", distribution.number_of_samples());
+
+		return distribution;
 	}
 };
