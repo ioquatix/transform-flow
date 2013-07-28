@@ -63,8 +63,19 @@ namespace TransformFlow
 			auto offset = previous_table->calculate_offset(*current_table);
 
 			// At least 3 vertical edges contributed to this sample:
-			if (offset.number_of_samples() > 3)
-				feature_transform = translate(Vec2(offset.value(), 0));
+			if (offset.number_of_samples() > 3) {
+				Mat44 r = rotate(video_frame.tilt, Vec3{0, 0, 1});
+				Vec3 u {r.at(0, 0), r.at(0, 1), r.at(0, 2)};
+
+				// This is hard code...
+				auto normalised_offset = -offset.value() / 25.0;
+
+				feature_transform = translate(u * normalised_offset);
+
+				log_debug("Updating feature transform", "\n", feature_transform, (feature_transform * Vec3(ZERO)));
+			} else {
+				log_debug("Not confident enough to update feature transform.");
+			}
 		}
 		
 		void VideoStreamRenderer::FrameCache::select(std::size_t index) {
@@ -237,21 +248,19 @@ namespace TransformFlow
 							
 				// Update the frame cache if required.
 				update_cache(video_stream);
-				
-				Mat44 global_transform = IDENTITY;
-				
+								
 				for (auto & frame : _frame_cache) {
 					if (frame->video_frame.gravity.equivalent(0))
 						continue;
 					
-					global_transform = frame->local_transform << global_transform;
+					Mat44 global_transform = frame->global_transform;
 					
 					if (_alignment_mode >= FEATURE_ALIGNMENT) {
-						global_transform = frame->feature_transform << global_transform;
+						global_transform = global_transform << frame->feature_transform;
 					}
 					
-					//frame->global_transform = global_transform;
-					binding.set_uniform("transform_matrix", frame->global_transform);
+					binding.set_uniform("transform_matrix", global_transform);
+					frame->cached_transform = global_transform;
 					
 					if (offset >= start)
 						_pixel_buffer_renderer->render(frame->image_box, frame->image_buffer());
@@ -272,7 +281,7 @@ namespace TransformFlow
 				binding.set_uniform("major_color", Vec4(0.5, 0.5, 1.0, 1.0));
 
 				for (auto & frame : _frame_cache) {
-					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->global_transform);
+					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->cached_transform);
 					binding.set_uniform("major_color", Vec4(0.5, 0.5, 1.0, 0.5));
 
 					//std::size_t index = 0;
@@ -327,9 +336,9 @@ namespace TransformFlow
 					frame->feature_particles->update(time);
 
 					if (offset == _start) {
-						_marker_renderer->render(frame->marker_particles, frame->global_transform);
+						_marker_renderer->render(frame->marker_particles, frame->cached_transform);
 						_billboard_marker_renderer->render(frame->debug_particles, IDENTITY);
-						_marker_renderer->render(frame->feature_particles, frame->global_transform);
+						_marker_renderer->render(frame->feature_particles, frame->cached_transform);
 					}
 					
 					if (offset >= start && --count == 0)
@@ -351,11 +360,11 @@ namespace TransformFlow
 
 				std::size_t start = _start, count = _count, offset = 0;
 				auto binding = _wireframe_program->binding();
-				
+
 				glDepthMask(GL_FALSE);
 				
 				for (auto & frame : _frame_cache) {
-					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->global_transform);
+					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->cached_transform);
 					binding.set_uniform("major_color", Vec4(0.4, 0.4, 0.4, 0.4));
 
 					_wireframe_renderer->render(frame->image_box);
@@ -436,7 +445,7 @@ namespace TransformFlow
 					for (auto point : frame->feature_points()->offsets()) {
 						Vec2 center = Vec2(point) / _scale;
 						center += frame->image_box.min();
-						Vec3 feature_center = frame->global_transform * (center << 0.0);
+						Vec3 feature_center = frame->cached_transform * (center << 0.0);
 						
 						RealT distance = (feature_center - at).length();
 						if (!closest_feature_points || closest_distance > distance) {

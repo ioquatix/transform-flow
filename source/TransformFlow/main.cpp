@@ -339,6 +339,8 @@ namespace TransformFlow {
 			StringStreamT buffer;
 
 			{
+				buffer << "Alignemnt: " << alignment_mode_name(_video_stream_renderer->alignment_mode()) << std::endl;
+
 				auto range = this->_video_stream_renderer->range();
 				auto & first_image_update = this->_video_stream->images().at(range[0]);
 

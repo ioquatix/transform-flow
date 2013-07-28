@@ -39,6 +39,19 @@ namespace TransformFlow
 			FEATURE_ALIGNMENT = 2,
 			ALIGNMENT_MAX = 3
 		};
+
+		inline const char * alignment_mode_name(AlignmentMode alignment_mode)
+		{
+			switch (alignment_mode) {
+				case ORIENTATION_ALIGNMENT:
+					return "Orientation Alignment";
+				case FEATURE_ALIGNMENT:
+					return "Feature Alignment";
+				default:
+				case NO_ALIGNMENT:
+					return "No Alignment";
+			}
+		}
 			
 		class VideoStreamRenderer : public Object {
 		protected:
@@ -76,7 +89,7 @@ namespace TransformFlow
 				Mat44 feature_transform;
 				
 				// A cache of the global transform, calculated per frame:
-				Mat44 global_transform;
+				Mat44 global_transform, cached_transform;
 				
 				AlignedBox2 image_box;
 				
@@ -107,6 +120,7 @@ namespace TransformFlow
 			virtual ~VideoStreamRenderer();
 			
 			void set_alignment_mode(AlignmentMode alignment_mode) { _alignment_mode = alignment_mode; }
+			AlignmentMode alignment_mode() const { return _alignment_mode; }
 			
 			void render_frame_for_time(TimeT time, Ptr<VideoStream> video_stream);
 			
