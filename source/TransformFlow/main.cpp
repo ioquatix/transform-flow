@@ -29,7 +29,7 @@
 #include <Euclid/Geometry/Generate/Planar.h>
 
 #include "VideoStream.h"
-#include "VideoStreamRenderer.h"
+#include "Renderer/VideoStreamRenderer.h"
 
 #include "BasicSensorMotionModel.h"
 
@@ -68,7 +68,7 @@ namespace TransformFlow {
 		Ref<MeshBuffer<MeshT>> _grid_mesh_buffer;
 		
 		Ref<VideoStream> _video_stream;
-		Ref<VideoStreamRenderer> _video_stream_renderer;
+		Ref<Renderer::VideoStreamRenderer> _video_stream_renderer;
 
 		// Text rendering
 		Ref<Text::Font> _font;
@@ -126,7 +126,7 @@ namespace TransformFlow {
 		renderer_state->texture_manager = _texture_manager;
 		renderer_state->shader_manager = _shader_manager;
 		renderer_state->resource_loader = manager->resource_loader();
-		_video_stream_renderer = new VideoStreamRenderer(renderer_state);
+		_video_stream_renderer = new Renderer::VideoStreamRenderer(renderer_state);
 
 		{
 			_wireframe_renderer = new WireframeRenderer;
@@ -282,13 +282,13 @@ namespace TransformFlow {
 	bool ImageSequenceScene::button (const ButtonInput & input)
 	{
 		if (input.button_pressed('t')) {
-			_video_stream_renderer->set_alignment_mode(ORIENTATION_ALIGNMENT);
+			_video_stream_renderer->set_alignment_mode(Renderer::ORIENTATION_ALIGNMENT);
 			return true;
 		} else if (input.button_pressed('r')) {
-			_video_stream_renderer->set_alignment_mode(NO_ALIGNMENT);
+			_video_stream_renderer->set_alignment_mode(Renderer::NO_ALIGNMENT);
 			return true;
 		} else if (input.button_pressed('e')) {
-			_video_stream_renderer->set_alignment_mode(FEATURE_ALIGNMENT);
+			_video_stream_renderer->set_alignment_mode(Renderer::FEATURE_ALIGNMENT);
 			return true;
 		} else if (input.button_pressed('f')) {
 			_video_stream_renderer->update_feature_transform();

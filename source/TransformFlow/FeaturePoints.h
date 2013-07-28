@@ -48,7 +48,6 @@ namespace TransformFlow {
 		FeaturePoints();
 		virtual ~FeaturePoints();
 
-		void scan(Ptr<Image> source);
 		void scan(Ptr<Image> source, const Radians<> & gravity_rotation);
 
 		Ref<FeatureTable> table() { return _table; }

@@ -22,12 +22,9 @@ namespace TransformFlow {
 		watch.start();
 
 		feature_points = new FeaturePoints;
-		//feature_points->scan(image_update->image_buffer);
 		feature_points->scan(image_update->image_buffer, tilt);
 
 		watch.pause();
-
-		//log_debug("Feature Point Scan:", watch.time());
 	}
 
 	VideoStream::VideoStream(const Path & path, Ref<MotionModel> motion_model) : _sensor_data(new SensorData(path)), _motion_model(motion_model)

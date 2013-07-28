@@ -12,8 +12,8 @@
 #include "MotionModel.h"
 #include "FeaturePoints.h"
 
-namespace TransformFlow {
-
+namespace TransformFlow
+{
 	class VideoStream : public Object
 	{
 		public:
@@ -44,7 +44,6 @@ namespace TransformFlow {
 
 			const std::vector<VideoFrame> & images() const { return _images; }
 	};
-	
 }
 
 #endif
