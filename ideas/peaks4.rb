@@ -78,6 +78,13 @@ class Alignment
 		
 		lowest_cost_queue.push(estimate_index, 0)
 		
+		add_index = lambda do |index|
+			unless @cost.key?(index) or not offsets.include? index
+				@cost[index] = (estimate_index - index) ** 2
+				lowest_cost_queue.push(index, @cost[index])
+			end
+		end
+		
 		while lowest_cost_queue.size > 0
 			index = lowest_cost_queue.pop
 			
@@ -88,13 +95,8 @@ class Alignment
 			
 			debug_costs(index)
 			
-			unless @cost.key?(index - 1) or not offsets.include? (index - 1)
-				lowest_cost_queue.push(index - 1, 0)
-			end
-			
-			unless @cost.key? (index + 1) or not offsets.include? (index + 1)
-				lowest_cost_queue.push(index + 1, 0)
-			end
+			add_index.call(index - 1)
+			add_index.call(index + 1)
 			
 			update_cost(index)
 			
@@ -126,7 +128,7 @@ class Alignment
 		puts "   cost: #{@cost.inspect}"
 		puts "indices: #{@indices.inspect}"
 		offsets.each do |offset|
-			puts "#{offset.to_s.rjust(4)} : #{(@errors[offset] || []).join(', ')}"
+			puts "#{offset.to_s.rjust(4)} (#{@cost[offset]}) : #{(@errors[offset] || []).join(', ')}"
 		end
 	end
 end
@@ -134,6 +136,11 @@ end
 # Visually aligned t1, t2, e = -3:
 t1 = [0, 0, 0, 5, 0, 0, 9, 0, 0, 6, 4]
 t2 =          [4, 0, 0, 8, 0, 0, 6, 4, 0, 0, 0]
+
+t1.size.times do |i|
+	t1[i] += rand(0..2)
+	t2[i] += rand(0..2)
+end
 
 # Estimate offset:
 e = -2
