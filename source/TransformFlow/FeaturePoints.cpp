@@ -169,6 +169,6 @@ namespace TransformFlow {
 		_table = new FeatureTable(_bounding_box.size().length() / 3, image_box, tilt);
 		_table->update(_offsets);
 
-		log_debug("Found", _offsets.size(), "feature points.");
+		//log_debug("Found", _offsets.size(), "feature points.");
 	}
 }

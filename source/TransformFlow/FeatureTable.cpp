@@ -202,7 +202,7 @@ namespace TransformFlow {
 		{
 			auto cost = calculate_alignment_cost(a, b, offset);
 
-			log_debug("-- Calculated error at offset:", offset, "=", cost.error);
+			//log_debug("-- Calculated error at offset:", offset, "=", cost.error);
 
 			ordered_costs.push(cost);
 		}
@@ -216,7 +216,7 @@ namespace TransformFlow {
 		
 		for (auto & chain : _bins[bin].links)
 		{
-			log_debug("Adding chain, aligned_offset =", chain.aligned_offset, "offset =", chain.offset);
+			//log_debug("Adding chain, aligned_offset =", chain.aligned_offset, "offset =", chain.offset);
 			distribution.add_sample(chain.aligned_offset[X]);
 		}
 
@@ -226,7 +226,7 @@ namespace TransformFlow {
 	Average<RealT> FeatureTable::calculate_offset(const FeatureTable & other) const
 	{
 		auto offset = calculate_bin_offset(other);
-		log_debug("Calculated bin offset", offset);
+		//log_debug("Calculated bin offset", offset);
 
 		Average<RealT> distribution;
 
@@ -253,12 +253,12 @@ namespace TransformFlow {
 				continue;
 
 			auto difference = b_distribution.value() - a_distribution.value();
-			log_debug("A", a_distribution.value(), "#", a_distribution.number_of_samples(), "B", b_distribution.value(), "#", b_distribution.number_of_samples(), "Difference", difference);
+			//log_debug("A", a_distribution.value(), "#", a_distribution.number_of_samples(), "B", b_distribution.value(), "#", b_distribution.number_of_samples(), "Difference", difference);
 			
 			distribution.add_sample(difference);
 		}
 
-		log_debug("Calculated offset", distribution.value(), "#", distribution.number_of_samples());
+		//log_debug("Calculated offset", distribution.value(), "#", distribution.number_of_samples());
 
 		return distribution;
 	}
