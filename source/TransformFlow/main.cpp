@@ -32,8 +32,11 @@
 #include "Renderer/VideoStreamRenderer.h"
 
 #include "BasicSensorMotionModel.h"
+#include "HybridMotionModel.h"
+#include "OpticalFlowMotionModel.h"
 
-namespace TransformFlow {
+namespace TransformFlow
+{
 	using namespace Dream;
 	using namespace Dream::Events;
 	using namespace Dream::Resources;
@@ -405,11 +408,13 @@ namespace TransformFlow {
 		
 		Ref<SceneManager> scene_manager = new SceneManager(_context, thread->loop(), loader);
 
-		Path root_data_path = "/Users/samuel/Documents/Programming/Graphics/transform-flow/Data/";
+		Path root_data_path = "/Users/samuel/Documents/University/Study/Thesis/transform-flow/Data";
 
 		Path data_path = root_data_path + "VideoStream-2013-07-09-16-04-47";
 
-		Ref<MotionModel> motion_model = new BasicSensorMotionModel;
+		// Select the appropriate motion model:
+		//Ref<MotionModel> motion_model = new BasicSensorMotionModel;
+		Ref<MotionModel> motion_model = new HybridMotionModel;
 
 		Ref<VideoStream> video_stream = new VideoStream(data_path, motion_model);
 		

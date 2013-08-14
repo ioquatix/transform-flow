@@ -8,9 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		7E14F8401422FAA300AB80F1 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E14F83F1422FAA300AB80F1 /* main.cpp */; };
-		7E1CFEF415D8860900CDC75C /* SurfaceFeatures.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E1CFEF215D8860900CDC75C /* SurfaceFeatures.cpp */; };
 		7E29AF29179F886E00B2C5CB /* MarkerRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E29AF27179F886E00B2C5CB /* MarkerRenderer.cpp */; };
 		7E29AF2C179F897A00B2C5CB /* VideoStreamRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E29AF2A179F897A00B2C5CB /* VideoStreamRenderer.cpp */; };
+		7E53597617B884B9001C1D7A /* FastAlignment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E53597417B884B9001C1D7A /* FastAlignment.cpp */; };
+		7E53597917B88567001C1D7A /* HybridMotionModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E53597717B88567001C1D7A /* HybridMotionModel.cpp */; };
+		7E53597C17B885F0001C1D7A /* OpticalFlowMotionModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E53597A17B885EF001C1D7A /* OpticalFlowMotionModel.cpp */; };
 		7E61CF0F158F8D6C00A414F8 /* Textures in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7E61CF06158F817C00A414F8 /* Textures */; };
 		7E8EEE7615E48A0A006AC4AF /* FeatureAlgorithm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E8EEE7415E48A0A006AC4AF /* FeatureAlgorithm.cpp */; };
 		7E9EA73C142306E300F8BC49 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7E9EA73B142306E300F8BC49 /* OpenGL.framework */; };
@@ -44,13 +46,17 @@
 		7E14F83B1422FAA200AB80F1 /* Transform Flow */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Transform Flow"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E14F83F1422FAA300AB80F1 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		7E14F84D1422FB0000AB80F1 /* transform-flow.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "transform-flow.xcconfig"; path = "teapot/transform-flow.xcconfig"; sourceTree = "<group>"; };
-		7E1CFEF215D8860900CDC75C /* SurfaceFeatures.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SurfaceFeatures.cpp; sourceTree = "<group>"; };
-		7E1CFEF315D8860900CDC75C /* SurfaceFeatures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SurfaceFeatures.h; sourceTree = "<group>"; };
 		7E29AF27179F886E00B2C5CB /* MarkerRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarkerRenderer.cpp; path = Renderer/MarkerRenderer.cpp; sourceTree = "<group>"; };
 		7E29AF28179F886E00B2C5CB /* MarkerRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarkerRenderer.h; path = Renderer/MarkerRenderer.h; sourceTree = "<group>"; };
 		7E29AF2A179F897A00B2C5CB /* VideoStreamRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VideoStreamRenderer.cpp; path = Renderer/VideoStreamRenderer.cpp; sourceTree = "<group>"; };
 		7E29AF2B179F897A00B2C5CB /* VideoStreamRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VideoStreamRenderer.h; path = Renderer/VideoStreamRenderer.h; sourceTree = "<group>"; };
 		7E3384EF178D0AE5005F21D9 /* teapot.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = teapot.xcconfig; path = teapot/teapot.xcconfig; sourceTree = SOURCE_ROOT; };
+		7E53597417B884B9001C1D7A /* FastAlignment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FastAlignment.cpp; sourceTree = "<group>"; };
+		7E53597517B884B9001C1D7A /* FastAlignment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FastAlignment.h; sourceTree = "<group>"; };
+		7E53597717B88567001C1D7A /* HybridMotionModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HybridMotionModel.cpp; sourceTree = "<group>"; };
+		7E53597817B88567001C1D7A /* HybridMotionModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HybridMotionModel.h; sourceTree = "<group>"; };
+		7E53597A17B885EF001C1D7A /* OpticalFlowMotionModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpticalFlowMotionModel.cpp; sourceTree = "<group>"; };
+		7E53597B17B885F0001C1D7A /* OpticalFlowMotionModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpticalFlowMotionModel.h; sourceTree = "<group>"; };
 		7E61CF06158F817C00A414F8 /* Textures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Textures; sourceTree = "<group>"; };
 		7E8EEE7415E48A0A006AC4AF /* FeatureAlgorithm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FeatureAlgorithm.cpp; sourceTree = "<group>"; };
 		7E8EEE7515E48A0A006AC4AF /* FeatureAlgorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FeatureAlgorithm.h; sourceTree = "<group>"; };
@@ -122,20 +128,11 @@
 		7E29AF25179F878F00B2C5CB /* Algorithms */ = {
 			isa = PBXGroup;
 			children = (
-				7E8EEE7515E48A0A006AC4AF /* FeatureAlgorithm.h */,
-				7E8EEE7415E48A0A006AC4AF /* FeatureAlgorithm.cpp */,
-				7EA5988E172B54CA0064B19E /* FeaturePoint.h */,
-				7EA5988D172B54CA0064B19E /* FeaturePoint.cpp */,
-				7EAD794814FF0F38006A4F25 /* FeaturePoints.h */,
-				7EAD794714FF0F38006A4F25 /* FeaturePoints.cpp */,
-				7EAE16DE1725745900D69539 /* FeatureTable.h */,
-				7EAE16DD1725745900D69539 /* FeatureTable.cpp */,
-				7E1CFEF315D8860900CDC75C /* SurfaceFeatures.h */,
-				7E1CFEF215D8860900CDC75C /* SurfaceFeatures.cpp */,
 				7EAD14AA176D6B1900E9FC60 /* MotionModel.h */,
 				7EAD14A9176D6B1900E9FC60 /* MotionModel.cpp */,
-				7EB66DB0177298DC007CF247 /* BasicSensorMotionModel.h */,
-				7EB66DAF177298DC007CF247 /* BasicSensorMotionModel.cpp */,
+				7E53597F17BB16A6001C1D7A /* Basic Sensor Motion Model */,
+				7E53597D17BB168C001C1D7A /* Hybrid Motion Model */,
+				7E53597E17BB1699001C1D7A /* Optical Flow Motion Model */,
 			);
 			name = Algorithms;
 			sourceTree = "<group>";
@@ -153,6 +150,43 @@
 				7EFA1F6D178C54AA00A2EE68 /* AxisRenderer.cpp */,
 			);
 			name = Renderer;
+			sourceTree = "<group>";
+		};
+		7E53597D17BB168C001C1D7A /* Hybrid Motion Model */ = {
+			isa = PBXGroup;
+			children = (
+				7E53597817B88567001C1D7A /* HybridMotionModel.h */,
+				7E53597717B88567001C1D7A /* HybridMotionModel.cpp */,
+				7EA5988E172B54CA0064B19E /* FeaturePoint.h */,
+				7EA5988D172B54CA0064B19E /* FeaturePoint.cpp */,
+				7EAD794814FF0F38006A4F25 /* FeaturePoints.h */,
+				7EAD794714FF0F38006A4F25 /* FeaturePoints.cpp */,
+				7E53597517B884B9001C1D7A /* FastAlignment.h */,
+				7E53597417B884B9001C1D7A /* FastAlignment.cpp */,
+				7EAE16DE1725745900D69539 /* FeatureTable.h */,
+				7EAE16DD1725745900D69539 /* FeatureTable.cpp */,
+			);
+			name = "Hybrid Motion Model";
+			sourceTree = "<group>";
+		};
+		7E53597E17BB1699001C1D7A /* Optical Flow Motion Model */ = {
+			isa = PBXGroup;
+			children = (
+				7E53597B17B885F0001C1D7A /* OpticalFlowMotionModel.h */,
+				7E53597A17B885EF001C1D7A /* OpticalFlowMotionModel.cpp */,
+				7E8EEE7515E48A0A006AC4AF /* FeatureAlgorithm.h */,
+				7E8EEE7415E48A0A006AC4AF /* FeatureAlgorithm.cpp */,
+			);
+			name = "Optical Flow Motion Model";
+			sourceTree = "<group>";
+		};
+		7E53597F17BB16A6001C1D7A /* Basic Sensor Motion Model */ = {
+			isa = PBXGroup;
+			children = (
+				7EB66DB0177298DC007CF247 /* BasicSensorMotionModel.h */,
+				7EB66DAF177298DC007CF247 /* BasicSensorMotionModel.cpp */,
+			);
+			name = "Basic Sensor Motion Model";
 			sourceTree = "<group>";
 		};
 		7E9E41C014286DCF0061260C /* Frameworks */ = {
@@ -224,7 +258,6 @@
 				7E14F8401422FAA300AB80F1 /* main.cpp in Sources */,
 				7EF9533A14E268A000F17E0D /* VideoStream.cpp in Sources */,
 				7EAD794914FF0F38006A4F25 /* FeaturePoints.cpp in Sources */,
-				7E1CFEF415D8860900CDC75C /* SurfaceFeatures.cpp in Sources */,
 				7E8EEE7615E48A0A006AC4AF /* FeatureAlgorithm.cpp in Sources */,
 				7EAE16DF1725745900D69539 /* FeatureTable.cpp in Sources */,
 				7EA5988F172B54CA0064B19E /* FeaturePoint.cpp in Sources */,
@@ -233,6 +266,9 @@
 				7EFA1F6F178C54AA00A2EE68 /* AxisRenderer.cpp in Sources */,
 				7E29AF29179F886E00B2C5CB /* MarkerRenderer.cpp in Sources */,
 				7E29AF2C179F897A00B2C5CB /* VideoStreamRenderer.cpp in Sources */,
+				7E53597617B884B9001C1D7A /* FastAlignment.cpp in Sources */,
+				7E53597917B88567001C1D7A /* HybridMotionModel.cpp in Sources */,
+				7E53597C17B885F0001C1D7A /* OpticalFlowMotionModel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

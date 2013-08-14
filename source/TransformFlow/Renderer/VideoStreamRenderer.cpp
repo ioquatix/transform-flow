@@ -9,7 +9,7 @@
 #include "VideoStreamRenderer.h"
 
 #include "MarkerRenderer.h"
-#include "../SurfaceFeatures.h"
+#include "../OpticalFlowMotionModel.h"
 
 #include <Euclid/Geometry/Plane.h>
 #include <Euclid/Numerics/Matrix.IO.h>
