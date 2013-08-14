@@ -45,9 +45,7 @@ namespace TransformFlow
 			Ref<AxisRenderer> _axis_renderer;
 
 			RealT _scale;
-			
-			Vec3 _selection_marker;
-			
+						
 			std::size_t _start, _count;
 			
 			std::size_t _frame_index, _feature_index;
@@ -65,12 +63,11 @@ namespace TransformFlow
 				Mat44 local_transform;
 				
 				// A cache of the global transform, calculated per frame:
-				Mat44 global_transform, cached_transform;
+				Mat44 global_transform;
 				
 				AlignedBox2 image_box;
 				
 				std::size_t selected_feature_index;
-				Vec2 corresponding_feature_coordinate;
 				
 				Plane<3> frame_plane() const;
 				

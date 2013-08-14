@@ -18,7 +18,8 @@ namespace TransformFlow
 {
 	namespace Renderer
 	{
-		VideoStreamRenderer::FrameCache::FrameCache() : selected_feature_index((std::size_t)-1), corresponding_feature_coordinate(0, 0) {
+		VideoStreamRenderer::FrameCache::FrameCache() : selected_feature_index((std::size_t)-1)
+		{
 			marker_particles = new MarkerParticles;
 			debug_particles = new MarkerParticles;
 			feature_particles = new MarkerParticles;
@@ -178,8 +179,6 @@ namespace TransformFlow
 					}
 				}
 
-				//cache->global_transform = cache->global_transform << rotate(R180 - frame.tilt, frame.heading);
-
 				cache->global_transform = rotate<Z>(-frame.bearing) << device_transform << cache->global_transform;
 
 				// Calculate the local transform, if any:
@@ -226,10 +225,7 @@ namespace TransformFlow
 					if (frame->video_frame.gravity.equivalent(0))
 						continue;
 					
-					Mat44 global_transform = frame->global_transform;
-										
-					binding.set_uniform("transform_matrix", global_transform);
-					frame->cached_transform = global_transform;
+					binding.set_uniform("transform_matrix", frame->global_transform);
 					
 					if (offset >= start)
 						_pixel_buffer_renderer->render(frame->image_box, frame->image_buffer());
@@ -246,56 +242,6 @@ namespace TransformFlow
 			{
 				std::size_t start = _start, count = _count, offset = 0;
 
-				auto binding = _wireframe_program->binding();
-				binding.set_uniform("major_color", Vec4(0.5, 0.5, 1.0, 1.0));
-
-				for (auto & frame : _frame_cache) {
-					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->cached_transform);
-					binding.set_uniform("major_color", Vec4(0.5, 0.5, 1.0, 0.5));
-
-					//std::size_t index = 0;
-					//for (auto point : frame->image_update.feature_points->offsets()) {
-						//Vec2 center = Vec2(point) / _scale;
-						//center += frame->image_box.min();
-						
-						//if (index == frame->selected_feature_index) {
-						//	binding.set_uniform("major_color", Vec4(0.0, 1.0, 0.0, 1.0));
-						//}
-						
-						//LineSegment3 marker(center << -1, center << 1);
-						//_wireframe_renderer->render(marker);
-						//_wireframe_renderer->render(frame->image_box);
-						
-						//_wireframe_renderer->render(LineSegment3(ZERO, Vec3(0, -20, 0)));
-						
-						//if (index == frame->selected_feature_index) {
-						//	binding.set_uniform("major_color", Vec4(0.5, 0.5, 1.0, 1.0));
-						//}
-						
-						//index += 1;
-					//}
-					
-					{
-						binding.set_uniform("major_color", Vec4(1.0, 0.95, 0.95, 1.0));
-						LineSegment3 marker(frame->corresponding_feature_coordinate << -1, frame->corresponding_feature_coordinate << 1);
-						_wireframe_renderer->render(marker);
-					}
-					
-					if (offset >= start && --count == 0)
-						break;
-					
-					offset += 1;
-				}
-				
-				binding.set_uniform("major_color", Vec4(1.0, 0.0, 0.0, 1.0));
-				
-				binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix());
-				_wireframe_renderer->render(AlignedBox3::from_center_and_size(_selection_marker, 2));
-			}
-			
-			{
-				std::size_t start = _start, count = _count, offset = 0;
-
 				glDisable(GL_CULL_FACE);
 				glDisable(GL_DEPTH_TEST);
 				
@@ -305,9 +251,9 @@ namespace TransformFlow
 					frame->feature_particles->update(time);
 
 					if (offset == _start) {
-						_marker_renderer->render(frame->marker_particles, frame->cached_transform);
+						_marker_renderer->render(frame->marker_particles, frame->global_transform);
 						_billboard_marker_renderer->render(frame->debug_particles, IDENTITY);
-						_marker_renderer->render(frame->feature_particles, frame->cached_transform);
+						_marker_renderer->render(frame->feature_particles, frame->global_transform);
 					}
 					
 					if (offset >= start && --count == 0)
@@ -333,7 +279,7 @@ namespace TransformFlow
 				glDepthMask(GL_FALSE);
 				
 				for (auto & frame : _frame_cache) {
-					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->cached_transform);
+					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->global_transform);
 					binding.set_uniform("major_color", Vec4(0.4, 0.4, 0.4, 0.4));
 
 					_wireframe_renderer->render(frame->image_box);
@@ -403,9 +349,7 @@ namespace TransformFlow
 			std::size_t start = _start, count = _count, offset = 0;
 			for (auto & frame : _frame_cache) {
 				Plane3 frame_plane = frame->frame_plane();
-				
-				_selection_marker = frame_plane.normal() * frame_plane.distance();
-				
+
 				Vec3 at;
 				if (offset >= start && frame_plane.intersects_with(object_coordinate.forward, at)) {
 					//frame->debug_particles->add(at, Vec3(0.5, 0.5, 0.0), Vec3(0.0, 0.0, -1.0), Vec2u(0, 0), Vec3(0.2, 0.8, 0.3));
@@ -414,7 +358,7 @@ namespace TransformFlow
 					for (auto point : frame->feature_points()->offsets()) {
 						Vec2 center = Vec2(point) / _scale;
 						center += frame->image_box.min();
-						Vec3 feature_center = frame->cached_transform * (center << 0.0);
+						Vec3 feature_center = frame->global_transform * (center << 0.0);
 						
 						RealT distance = (feature_center - at).length();
 						if (!closest_feature_points || closest_distance > distance) {
