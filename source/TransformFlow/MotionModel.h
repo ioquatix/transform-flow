@@ -29,6 +29,13 @@ namespace TransformFlow
 		virtual void apply(MotionModel * model) = 0;
 
 		TimeT time_offset;
+
+		// Used to keep track of debugging information relating to this sensor update.
+		mutable std::vector<std::string> notes;
+
+		void add_note(std::string note) const {
+			notes.push_back(note);
+		}
 	};
 
 	struct LocationUpdate : public SensorUpdate {
