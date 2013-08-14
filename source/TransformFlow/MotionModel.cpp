@@ -155,6 +155,12 @@ namespace TransformFlow
 				image_update.time_offset = to<RealT>(parts.at(3));
 				image_update.image_buffer = frame_for_index(to<std::size_t>(parts.at(2)));
 
+				// http://www.boinx.com/chronicles/2013/3/22/field-of-view-fov-of-cameras-in-ios-devices/
+				if (parts.size() >= 5)
+					image_update.field_of_view = to<RealT>(parts.at(4));
+				else
+					image_update.field_of_view = 56.3; // iPhone 5
+
 				_sensor_updates.push_back(new ImageUpdate(image_update));
 			}
 			else

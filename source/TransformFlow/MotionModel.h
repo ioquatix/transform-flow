@@ -69,6 +69,9 @@ namespace TransformFlow
 		virtual void apply(MotionModel * model);
 		
 		Ref<Image> image_buffer;
+
+		/// The horizontal field of view of the camera image updates:
+		RealT field_of_view;
 	};
 
 	class SensorData : public Object
