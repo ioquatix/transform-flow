@@ -55,29 +55,7 @@ namespace TransformFlow
 			
 			return pixel_coordinate;
 		}
-		
-		void VideoStreamRenderer::FrameCache::calculate_feature_transform(Shared<FrameCache> previous) {
-			auto current_table = feature_points()->table();
-			auto previous_table = previous->feature_points()->table();
-
-			auto offset = previous_table->calculate_offset(*current_table);
-
-			// At least 3 vertical edges contributed to this sample:
-			if (offset.number_of_samples() > 3) {
-				Mat44 r = rotate(video_frame.tilt, Vec3{0, 0, 1});
-				Vec3 u {r.at(0, 0), r.at(0, 1), r.at(0, 2)};
-
-				// This is hard code...
-				auto normalised_offset = -offset.value() / 25.0;
-
-				feature_transform = translate(u * normalised_offset);
-
-				log_debug("Updating feature transform", "\n", feature_transform, (feature_transform * Vec3(ZERO)));
-			} else {
-				log_debug("Not confident enough to update feature transform.");
-			}
-		}
-		
+				
 		void VideoStreamRenderer::FrameCache::select(std::size_t index) {
 			if (selected_feature_index != (std::size_t)-1) {
 				marker_particles->particles()[selected_feature_index].color = Vec3(1.0, 1.0, 1.0);
@@ -121,9 +99,7 @@ namespace TransformFlow
 			_pixel_buffer_renderer->texture_parameters().generate_mip_maps = true;
 			_pixel_buffer_renderer->texture_parameters().min_filter = 0;
 			//_pixel_buffer_renderer->texture_parameters().mag_filter = 0;
-			
-			_alignment_mode = FEATURE_ALIGNMENT;
-			
+
 			_wireframe_renderer = new WireframeRenderer;
 			
 			{
@@ -212,9 +188,6 @@ namespace TransformFlow
 				} else {
 					cache->local_transform = cache->global_transform;
 				}
-
-				// We calculate this on demand for the visualisation:
-				cache->feature_transform = Mat44(IDENTITY);
 				
 				_frame_cache.push_back(cache);
 				previous = cache;
@@ -254,11 +227,7 @@ namespace TransformFlow
 						continue;
 					
 					Mat44 global_transform = frame->global_transform;
-					
-					if (_alignment_mode >= FEATURE_ALIGNMENT) {
-						global_transform = global_transform << frame->feature_transform;
-					}
-					
+										
 					binding.set_uniform("transform_matrix", global_transform);
 					frame->cached_transform = global_transform;
 					
@@ -482,28 +451,6 @@ namespace TransformFlow
 			return false;
 		}
 		
-		bool VideoStreamRenderer::update_feature_transform() {
-			Shared<FrameCache> frame = _frame_cache[_frame_index];
-			
-			if (_frame_index > 0) {
-				Shared<FrameCache> previous = _frame_cache[_frame_index - 1];
-
-				std::clock_t start = std::clock();
-				frame->calculate_feature_transform(previous);
-				std::clock_t end = std::clock();
-				double duration = double(end - start) / CLOCKS_PER_SEC;
-
-				log_debug("(Update feature transform) Time =", duration);
-
-				// If we were drawing debugging information, we need to update the texture:
-				//_pixel_buffer_renderer->invalidate(next->image_buffer());
-			
-				return true;
-			} else {
-				return false;
-			}
-		}
-		
 		void VideoStreamRenderer::find_vertical_edges() {
 			Shared<FrameCache> frame = _frame_cache[_frame_index];
 			
@@ -537,7 +484,7 @@ namespace TransformFlow
 
 				log_debug("Offset (Optical Flow)", offset, "Time =", duration);
 				
-				next->feature_transform = translate(offset);
+				//next->feature_transform = translate(offset);
 
 				return true;
 			} else {

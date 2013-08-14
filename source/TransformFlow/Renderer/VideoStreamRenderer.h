@@ -32,26 +32,6 @@ namespace TransformFlow
 
 		class MarkerRenderer;
 		class MarkerParticles;
-
-		enum AlignmentMode {
-			NO_ALIGNMENT = 0,
-			ORIENTATION_ALIGNMENT = 1,
-			FEATURE_ALIGNMENT = 2,
-			ALIGNMENT_MAX = 3
-		};
-
-		inline const char * alignment_mode_name(AlignmentMode alignment_mode)
-		{
-			switch (alignment_mode) {
-				case ORIENTATION_ALIGNMENT:
-					return "Orientation Alignment";
-				case FEATURE_ALIGNMENT:
-					return "Feature Alignment";
-				default:
-				case NO_ALIGNMENT:
-					return "No Alignment";
-			}
-		}
 			
 		class VideoStreamRenderer : public Object {
 		protected:
@@ -64,7 +44,6 @@ namespace TransformFlow
 
 			Ref<AxisRenderer> _axis_renderer;
 
-			AlignmentMode _alignment_mode;
 			RealT _scale;
 			
 			Vec3 _selection_marker;
@@ -84,9 +63,6 @@ namespace TransformFlow
 				
 				// A transform to align based on sensor data:
 				Mat44 local_transform;
-				
-				// A tranform to align features:
-				Mat44 feature_transform;
 				
 				// A cache of the global transform, calculated per frame:
 				Mat44 global_transform, cached_transform;
@@ -118,15 +94,19 @@ namespace TransformFlow
 		public:
 			VideoStreamRenderer(Ptr<RendererState> renderer_state);
 			virtual ~VideoStreamRenderer();
-			
-			void set_alignment_mode(AlignmentMode alignment_mode) { _alignment_mode = alignment_mode; }
-			AlignmentMode alignment_mode() const { return _alignment_mode; }
-			
+
 			void render_frame_for_time(TimeT time, Ptr<VideoStream> video_stream);
 			
 			void set_range(Vec2u range) {
 				_start = range[0];
 				_count = range[1];
+
+				log_debug("Notes for frame", _start);
+				auto notes = _frame_cache[_start]->video_frame.image_update->notes;
+				for (auto & note : notes)
+				{
+					log_debug("* ", note);
+				}
 			}
 			
 			Vec2u range() const {
@@ -138,7 +118,6 @@ namespace TransformFlow
 				return {_frame_index, _feature_index};
 			}
 
-			bool update_feature_transform();
 			bool apply_feature_algorithm();
 			
 			void find_vertical_edges();

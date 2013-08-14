@@ -284,19 +284,7 @@ namespace TransformFlow
 	
 	bool ImageSequenceScene::button (const ButtonInput & input)
 	{
-		if (input.button_pressed('t')) {
-			_video_stream_renderer->set_alignment_mode(Renderer::ORIENTATION_ALIGNMENT);
-			return true;
-		} else if (input.button_pressed('r')) {
-			_video_stream_renderer->set_alignment_mode(Renderer::NO_ALIGNMENT);
-			return true;
-		} else if (input.button_pressed('e')) {
-			_video_stream_renderer->set_alignment_mode(Renderer::FEATURE_ALIGNMENT);
-			return true;
-		} else if (input.button_pressed('f')) {
-			_video_stream_renderer->update_feature_transform();
-			return true;
-		} else if (input.button_pressed('v')) {
+		if (input.button_pressed('v')) {
 			_video_stream_renderer->find_vertical_edges();
 		} else if (input.button_pressed('a')) {
 			_video_stream_renderer->apply_feature_algorithm();
@@ -342,8 +330,6 @@ namespace TransformFlow
 			StringStreamT buffer;
 
 			{
-				buffer << "Alignemnt: " << alignment_mode_name(_video_stream_renderer->alignment_mode()) << std::endl;
-
 				auto range = this->_video_stream_renderer->range();
 				auto & first_image_update = this->_video_stream->images().at(range[0]);
 
