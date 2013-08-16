@@ -71,7 +71,12 @@ namespace TransformFlow
 		Ref<Image> image_buffer;
 
 		/// The horizontal field of view of the camera image updates:
-		RealT field_of_view;
+		Radians<> field_of_view;
+
+		RealT distance_from_origin(RealT width) const;
+		RealT distance_from_origin();
+
+		Radians<> angle_of(RealT pixels = 1.0) const;
 	};
 
 	class SensorData : public Object

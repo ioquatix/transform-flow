@@ -23,6 +23,8 @@ namespace TransformFlow
 		virtual void update(const ImageUpdate & image_update);
 
 	private:
+		// Measured in degrees from north:
+		RealT _previous_bearing;
 		Ref<FeaturePoints> _previous_feature_points;
 	};
 }

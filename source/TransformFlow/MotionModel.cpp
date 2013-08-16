@@ -50,6 +50,21 @@ namespace TransformFlow
 		model->update(*this);
 	}
 
+	RealT ImageUpdate::distance_from_origin(RealT width) const
+	{
+		return (field_of_view / 2.0).tan() * (width / 2.0);
+	}
+
+	RealT ImageUpdate::distance_from_origin()
+	{
+		return distance_from_origin(image_buffer->size()[WIDTH]);
+	}
+
+	Radians<> ImageUpdate::angle_of(RealT pixels) const
+	{
+		return (field_of_view / image_buffer->size()[WIDTH]) * pixels;
+	}
+
 #pragma mark -
 
 	using namespace Dream::Events::Logging;
@@ -157,9 +172,9 @@ namespace TransformFlow
 
 				// http://www.boinx.com/chronicles/2013/3/22/field-of-view-fov-of-cameras-in-ios-devices/
 				if (parts.size() >= 5)
-					image_update.field_of_view = to<RealT>(parts.at(4));
+					image_update.field_of_view = radians(to<RealT>(parts.at(4)));
 				else
-					image_update.field_of_view = 56.3; // iPhone 5
+					image_update.field_of_view = 56.3_deg; // iPhone 5
 
 				_sensor_updates.push_back(new ImageUpdate(image_update));
 			}

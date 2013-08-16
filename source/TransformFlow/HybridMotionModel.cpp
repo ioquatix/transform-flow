@@ -38,23 +38,24 @@ namespace TransformFlow
 
 			// At least 3 vertical edges contributed to this sample:
 			if (offset.number_of_samples() > 3) {
-				Mat44 r = rotate(tilt(), Vec3{0, 0, 1});
-				Vec3 u {r.at(0, 0), r.at(0, 1), r.at(0, 2)};
+				// This offset is measured in pixels, so we convert it to degrees and use it to rectify errors in the gyro/compass:
+				RealT bearing_offset = image_update.angle_of(offset.value());
 
-				// This is hard code...
-				auto normalised_offset = offset.value() / 25.0;
+				//log_debug("bearing offset", bearing_offset, "actual offset", (_bearing - _previous_bearing));
 
-				//alignment_offset = translate(u * normalised_offset);
-				_bearing += normalised_offset;
+				auto updated_bearing = interpolateAnglesDegrees(_bearing, _previous_bearing + bearing_offset, 1.0);
+				//log_debug("Bearing update", _bearing, "previous bearing", _previous_bearing, "updated bearing", updated_bearing, "bearing offset", bearing_offset, "pixel offset", offset.value());
+				_bearing = updated_bearing;
 
-				note << "Updating bearing by " << normalised_offset << " from offset = " << offset.value() << std::endl;
+				note << "Updating bearing by " << bearing_offset << " from offset = " << offset.value() << std::endl;
 			} else {
 				note << "Not confident enough to update feature transform" << std::endl;
 			}
 
 			image_update.add_note(note.str());
 		}
-		
+
+		_previous_bearing = _bearing;
 		_previous_feature_points = current_feature_points;
 	}
 }

@@ -13,6 +13,10 @@
 
 namespace TransformFlow
 {
+	// If blend = 0, result is a, if blend = 1, result is b.
+	double interpolateAnglesRadians(double a, double b, double blend);
+	double interpolateAnglesDegrees(double a, double b, double blend);
+
 	class BasicSensorMotionModel : public MotionModel
 	{
 		protected:

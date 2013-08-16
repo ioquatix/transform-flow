@@ -144,9 +144,6 @@ namespace TransformFlow
 			if (_frame_cache.size() != 0) return;
 			
 			Vec3 down(-1, 0, 0);
-
-			// Transform the video from camera space to device space:
-			Mat44 device_transform = translate(Vec3{0, 25, 0}) << rotate<X>(R90);
 			
 			// Faux rotation
 			//Mat44 rotation(IDENTITY);
@@ -155,6 +152,10 @@ namespace TransformFlow
 			for (auto & frame : video_stream->images()) {
 				if (frame.gravity.equivalent(0))
 					continue;
+
+				// Transform the video from camera space to device space:
+				auto distance = frame.image_update->distance_from_origin() / 3.0;
+				Mat44 device_transform = translate(Vec3{0, distance, 0}) << rotate<X>(R90);
 
 				// Calculate the image box:
 				Vec2 box_size = Vec2(frame.image_update->image_buffer->size()) / _scale;

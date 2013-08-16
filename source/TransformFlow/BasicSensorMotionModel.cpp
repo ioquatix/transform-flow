@@ -14,7 +14,7 @@ namespace TransformFlow
 {
 	using namespace Euclid::Geometry;
 
-	static double interpolateAnglesRadians(double a, double b, double blend)
+	double interpolateAnglesRadians(double a, double b, double blend)
 	{
 		double ix = sin(a), iy = cos(a);
 		double jx = sin(b), jy = cos(b);
@@ -22,7 +22,7 @@ namespace TransformFlow
 		return atan2(ix-(ix-jx)*blend, iy-(iy-jy)*blend);
 	}
 
-	static double interpolateAnglesDegrees(double a, double b, double blend)
+	double interpolateAnglesDegrees(double a, double b, double blend)
 	{
 		return interpolateAnglesRadians(a * D2R, b * D2R, blend) * R2D;
 	}
@@ -64,7 +64,7 @@ namespace TransformFlow
 			auto rotation_about_gravity = _gravity.dot(rotation) * R2D;
 
 			if (_heading_primed) {
-				_bearing = interpolateAnglesDegrees(_bearing + rotation_about_gravity, _heading_update.true_bearing, 0.001);
+				_bearing = interpolateAnglesDegrees(_bearing + rotation_about_gravity, _heading_update.true_bearing, 0.01);
 			}
 		} else {
 			_motion_primed = true;
