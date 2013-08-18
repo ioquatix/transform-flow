@@ -28,12 +28,12 @@
 
 #include <Euclid/Geometry/Generate/Planar.h>
 
-#include "VideoStream.h"
-#include "Renderer/VideoStreamRenderer.h"
+#include <TransformFlow/VideoStream.h>
+#include <TransformFlow/BasicSensorMotionModel.h>
+#include <TransformFlow/HybridMotionModel.h>
+#include <TransformFlow/OpticalFlowMotionModel.h>
 
-#include "BasicSensorMotionModel.h"
-#include "HybridMotionModel.h"
-#include "OpticalFlowMotionModel.h"
+#include "Renderer/VideoStreamRenderer.h"
 
 namespace TransformFlow
 {
@@ -374,12 +374,20 @@ namespace TransformFlow
 	{
 		protected:
 			Ref<IContext> _context;
-		
-			virtual ~TransformFlowApplicationDelegate ();
-			virtual void application_did_finish_launching (IApplication * application);
 			
-			virtual void application_will_enter_background (IApplication * application);
-			virtual void application_did_enter_foreground (IApplication * application);
+			Path _data_path;
+			Ref<MotionModel> _motion_model;
+		
+		public:
+			~TransformFlowApplicationDelegate ();
+			
+			void set_data_path(const Path & data_path) { _data_path = data_path; }
+			void set_motion_model(Ptr<MotionModel> motion_model) { _motion_model = motion_model; }
+			
+			void application_did_finish_launching (IApplication * application);
+			
+			void application_will_enter_background (IApplication * application);
+			void application_did_enter_foreground (IApplication * application);
 	};
 	
 	TransformFlowApplicationDelegate::~TransformFlowApplicationDelegate() {
@@ -395,17 +403,7 @@ namespace TransformFlow
 		
 		Ref<SceneManager> scene_manager = new SceneManager(_context, thread->loop(), loader);
 
-		Path root_data_path = "/Users/samuel/Documents/University/Study/Thesis/transform-flow/Data";
-
-		//Path data_path = root_data_path + "VideoStream-2013-07-09-16-04-47";
-		Path data_path = root_data_path + "VideoStream-2013-07-09-17-58-39";
-
-		// Select the appropriate motion model:
-		Ref<MotionModel> motion_model = new BasicSensorMotionModel;
-		//Ref<MotionModel> motion_model = new HybridMotionModel;
-		//Ref<MotionModel> motion_model = new OpticalFlowMotionModel;
-
-		Ref<VideoStream> video_stream = new VideoStream(data_path, motion_model);
+		Ref<VideoStream> video_stream = new VideoStream(_data_path, _motion_model);
 		
 		Ref<ImageSequenceScene> image_sequence_scene = new ImageSequenceScene;
 		image_sequence_scene->set_video_stream(video_stream);
@@ -436,6 +434,26 @@ int main (int argc, const char * argv[])
 	using namespace Dream::Client::Display;
 	
 	Ref<TransformFlowApplicationDelegate> delegate = new TransformFlowApplicationDelegate;
+	
+	if (argc != 3) {
+		std::cerr << "Usage: " << Path(argv[0]).last_name_components().basename << " data-path motion-model" << std::endl;
+		return -1;
+	}
+	
+	Path data_path = argv[1];
+	StringT motion_model_name = argv[2];
+	
+	Ref<MotionModel> motion_model;
+	
+	if (motion_model_name == "BasicSensorMotionModel") {
+		motion_model = new BasicSensorMotionModel;
+	} else if (motion_model_name == "HybridMotionModel") {
+		motion_model = new HybridMotionModel;
+	}
+	
+	delegate->set_data_path(data_path);
+	delegate->set_motion_model(motion_model);
+	
 	IApplication::start(delegate);
 	
     return 0;

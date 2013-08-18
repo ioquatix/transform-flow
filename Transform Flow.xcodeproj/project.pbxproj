@@ -44,12 +44,12 @@
 
 /* Begin PBXFileReference section */
 		7E14F83B1422FAA200AB80F1 /* Transform Flow */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Transform Flow"; sourceTree = BUILT_PRODUCTS_DIR; };
-		7E14F83F1422FAA300AB80F1 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		7E14F83F1422FAA300AB80F1 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = "../TransformFlow-Visualisation/main.cpp"; sourceTree = "<group>"; };
 		7E14F84D1422FB0000AB80F1 /* transform-flow.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "transform-flow.xcconfig"; path = "teapot/transform-flow.xcconfig"; sourceTree = "<group>"; };
-		7E29AF27179F886E00B2C5CB /* MarkerRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MarkerRenderer.cpp; path = Renderer/MarkerRenderer.cpp; sourceTree = "<group>"; };
-		7E29AF28179F886E00B2C5CB /* MarkerRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MarkerRenderer.h; path = Renderer/MarkerRenderer.h; sourceTree = "<group>"; };
-		7E29AF2A179F897A00B2C5CB /* VideoStreamRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VideoStreamRenderer.cpp; path = Renderer/VideoStreamRenderer.cpp; sourceTree = "<group>"; };
-		7E29AF2B179F897A00B2C5CB /* VideoStreamRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = VideoStreamRenderer.h; path = Renderer/VideoStreamRenderer.h; sourceTree = "<group>"; };
+		7E29AF27179F886E00B2C5CB /* MarkerRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MarkerRenderer.cpp; sourceTree = "<group>"; };
+		7E29AF28179F886E00B2C5CB /* MarkerRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MarkerRenderer.h; sourceTree = "<group>"; };
+		7E29AF2A179F897A00B2C5CB /* VideoStreamRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoStreamRenderer.cpp; sourceTree = "<group>"; };
+		7E29AF2B179F897A00B2C5CB /* VideoStreamRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoStreamRenderer.h; sourceTree = "<group>"; };
 		7E3384EF178D0AE5005F21D9 /* teapot.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = teapot.xcconfig; path = teapot/teapot.xcconfig; sourceTree = SOURCE_ROOT; };
 		7E53597417B884B9001C1D7A /* FastAlignment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FastAlignment.cpp; sourceTree = "<group>"; };
 		7E53597517B884B9001C1D7A /* FastAlignment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FastAlignment.h; sourceTree = "<group>"; };
@@ -57,11 +57,11 @@
 		7E53597817B88567001C1D7A /* HybridMotionModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HybridMotionModel.h; sourceTree = "<group>"; };
 		7E53597A17B885EF001C1D7A /* OpticalFlowMotionModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OpticalFlowMotionModel.cpp; sourceTree = "<group>"; };
 		7E53597B17B885F0001C1D7A /* OpticalFlowMotionModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpticalFlowMotionModel.h; sourceTree = "<group>"; };
-		7E61CF06158F817C00A414F8 /* Textures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Textures; sourceTree = "<group>"; };
+		7E61CF06158F817C00A414F8 /* Textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Textures; path = "../TransformFlow-Visualisation/Resources/Textures"; sourceTree = "<group>"; };
 		7E8EEE7415E48A0A006AC4AF /* FeatureAlgorithm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FeatureAlgorithm.cpp; sourceTree = "<group>"; };
 		7E8EEE7515E48A0A006AC4AF /* FeatureAlgorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FeatureAlgorithm.h; sourceTree = "<group>"; };
 		7E9EA73B142306E300F8BC49 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
-		7EA4D0E614E7F98000D5C4C6 /* Shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Shaders; sourceTree = "<group>"; };
+		7EA4D0E614E7F98000D5C4C6 /* Shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shaders; path = "../TransformFlow-Visualisation/Resources/Shaders"; sourceTree = "<group>"; };
 		7EA5988D172B54CA0064B19E /* FeaturePoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FeaturePoint.cpp; sourceTree = "<group>"; };
 		7EA5988E172B54CA0064B19E /* FeaturePoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FeaturePoint.h; sourceTree = "<group>"; };
 		7EAD14A9176D6B1900E9FC60 /* MotionModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MotionModel.cpp; sourceTree = "<group>"; };
@@ -72,11 +72,11 @@
 		7EAE16DE1725745900D69539 /* FeatureTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FeatureTable.h; sourceTree = "<group>"; };
 		7EB66DAF177298DC007CF247 /* BasicSensorMotionModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BasicSensorMotionModel.cpp; sourceTree = "<group>"; };
 		7EB66DB0177298DC007CF247 /* BasicSensorMotionModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BasicSensorMotionModel.h; sourceTree = "<group>"; };
-		7ED8E071173A2597009814A2 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
+		7ED8E071173A2597009814A2 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fonts; path = "../TransformFlow-Visualisation/Resources/Fonts"; sourceTree = "<group>"; };
 		7EF9533814E268A000F17E0D /* VideoStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoStream.cpp; sourceTree = "<group>"; };
 		7EF9533914E268A000F17E0D /* VideoStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoStream.h; sourceTree = "<group>"; };
-		7EFA1F6D178C54AA00A2EE68 /* AxisRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AxisRenderer.cpp; path = source/TransformFlow/AxisRenderer.cpp; sourceTree = SOURCE_ROOT; };
-		7EFA1F6E178C54AA00A2EE68 /* AxisRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AxisRenderer.h; path = source/TransformFlow/AxisRenderer.h; sourceTree = SOURCE_ROOT; };
+		7EFA1F6D178C54AA00A2EE68 /* AxisRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AxisRenderer.cpp; path = "source/TransformFlow-Visualisation/Renderer/AxisRenderer.cpp"; sourceTree = SOURCE_ROOT; };
+		7EFA1F6E178C54AA00A2EE68 /* AxisRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AxisRenderer.h; path = "source/TransformFlow-Visualisation/Renderer/AxisRenderer.h"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +113,8 @@
 		7E14F83E1422FAA200AB80F1 /* Transform Flow */ = {
 			isa = PBXGroup;
 			children = (
+				7EF9533914E268A000F17E0D /* VideoStream.h */,
+				7EF9533814E268A000F17E0D /* VideoStream.cpp */,
 				7E29AF25179F878F00B2C5CB /* Algorithms */,
 				7E29AF26179F87A900B2C5CB /* Renderer */,
 				7E14F83F1422FAA300AB80F1 /* main.cpp */,
@@ -144,12 +146,11 @@
 				7E29AF27179F886E00B2C5CB /* MarkerRenderer.cpp */,
 				7E29AF2B179F897A00B2C5CB /* VideoStreamRenderer.h */,
 				7E29AF2A179F897A00B2C5CB /* VideoStreamRenderer.cpp */,
-				7EF9533914E268A000F17E0D /* VideoStream.h */,
-				7EF9533814E268A000F17E0D /* VideoStream.cpp */,
 				7EFA1F6E178C54AA00A2EE68 /* AxisRenderer.h */,
 				7EFA1F6D178C54AA00A2EE68 /* AxisRenderer.cpp */,
 			);
 			name = Renderer;
+			path = "../TransformFlow-Visualisation/Renderer";
 			sourceTree = "<group>";
 		};
 		7E53597D17BB168C001C1D7A /* Hybrid Motion Model */ = {

@@ -67,9 +67,20 @@ namespace TransformFlow
 
 	void OpticalFlowMotionModel::update(const ImageUpdate & image_update)
 	{
-		if (_image_primed) {
+		if (_image_primed)
+		{
+			Mat44 r = rotate(tilt(), Vec3{0, 0, 1});
+
+			// Calculate the vector perpendicular to gravity based on tilt:
+			Vec3 u{r.at(0, 0), r.at(0, 1), r.at(0, 2)};
+			
+			// This is a transform matrix from one image to the other. We want to find the component perpendicular to gravity.
 			auto transform = _matching_algorithm->calculate_local_transform(_image_update, image_update);
+
+			
 		}
+
+		_previous_bearing = _bearing;
 
 		_image_primed = true;
 		_image_update = image_update;

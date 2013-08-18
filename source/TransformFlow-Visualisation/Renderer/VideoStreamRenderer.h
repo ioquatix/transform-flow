@@ -9,7 +9,7 @@
 #ifndef TRANSFORMFLOW_RENDERER_VIDEOSTREAMRENDERER_H
 #define TRANSFORMFLOW_RENDERER_VIDEOSTREAMRENDERER_H
 
-#include "VideoStream.h"
+#include <TransformFlow/VideoStream.h>
 
 #include <Dream/Renderer/Projection.h>
 #include <Dream/Renderer/Viewport.h>
@@ -20,7 +20,7 @@
 #include <Dream/Client/Graphics/WireframeRenderer.h>
 #include <Dream/Client/Graphics/Renderer.h>
 
-#include "FeatureAlgorithm.h"
+#include <TransformFlow/FeatureAlgorithm.h>
 #include "AxisRenderer.h"
 
 namespace TransformFlow

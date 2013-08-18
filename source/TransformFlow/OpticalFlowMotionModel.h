@@ -25,6 +25,8 @@ namespace TransformFlow
 		virtual void update(const ImageUpdate & image_update);
 
 	private:
+		RealT _previous_bearing;
+
 		bool _image_primed;
 		ImageUpdate _image_update;
 

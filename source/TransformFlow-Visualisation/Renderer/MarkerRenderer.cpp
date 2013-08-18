@@ -36,7 +36,7 @@ namespace TransformFlow
 		MarkerRenderer::MarkerRenderer(Ptr<RendererState> renderer_state, bool billboard) : _renderer_state(renderer_state)
 		{
 			// Load marker texture:
-			_marker_texture = _renderer_state->load_texture(TextureParameters::FILTERED, "Textures/Markers");
+			_marker_texture = _renderer_state->load_texture(TextureParameters::FILTERED, "Textures/markers");
 			
 			// Load particle program:
 			if (billboard) {
