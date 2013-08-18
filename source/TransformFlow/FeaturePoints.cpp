@@ -73,7 +73,7 @@ namespace TransformFlow {
 				
 				//logger()->log(LOG_DEBUG, LogBuffer() << "Pixel[0] = " << pixel[0] << " Pixel[1] = " << pixel[1] << " Distance = " << distance);
 				
-				if (distance > 5000) {
+				if (distance > 4000) {
 					Vec2 middle = offset[0] + offset[1];
 					middle /= 2.0;
 					//Vec2 middle = offset[1];
