@@ -10,6 +10,8 @@
 
 namespace TransformFlow
 {
+	using namespace Dream::Events::Logging;
+
 	SensorUpdate::~SensorUpdate()
 	{
 	}
@@ -52,7 +54,9 @@ namespace TransformFlow
 
 	RealT ImageUpdate::distance_from_origin(RealT width) const
 	{
-		return (field_of_view / 2.0).tan() * (width / 2.0);
+		// opposite = width, adjacent = distance_from_origin
+		// tan(angle) = opposite / adjacent
+		return (width / 2.0) / (field_of_view / 2.0).tan();
 	}
 
 	RealT ImageUpdate::distance_from_origin()

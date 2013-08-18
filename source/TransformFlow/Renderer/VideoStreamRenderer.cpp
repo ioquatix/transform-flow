@@ -131,7 +131,7 @@ namespace TransformFlow
 			_frame_index = 0;
 			_feature_index = 1;
 
-			_scale = 20.0;
+			_scale = 25.0;
 
 			_axis_renderer = new AxisRenderer(renderer_state);
 		}
@@ -142,8 +142,9 @@ namespace TransformFlow
 
 		void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream) {
 			if (_frame_cache.size() != 0) return;
-			
-			Vec3 down(-1, 0, 0);
+
+			// iPhone sensor "down".
+			Vec3 down(0, -1, 0);
 			
 			// Faux rotation
 			//Mat44 rotation(IDENTITY);
@@ -153,13 +154,18 @@ namespace TransformFlow
 				if (frame.gravity.equivalent(0))
 					continue;
 
-				// Transform the video from camera space to device space:
-				auto distance = frame.image_update->distance_from_origin() / 3.0;
-				Mat44 device_transform = translate(Vec3{0, distance, 0}) << rotate<X>(R90);
-
 				// Calculate the image box:
 				Vec2 box_size = Vec2(frame.image_update->image_buffer->size()) / _scale;
 				AlignedBox2 image_box = AlignedBox2::from_center_and_size(ZERO, box_size);
+
+				// Transform the video from camera space to device space:
+				auto distance = frame.image_update->distance_from_origin(box_size[WIDTH]);
+
+				// The device transform should shift the image frames into the same frame of reference as the sensor data.
+				// The iPhone camera is rotated -90_deg around the Z axis:
+				Mat44 device_transform = rotate<Z>(-90_deg);
+
+				Mat44 renderer_transform = translate(Vec3{0, 0, -distance});
 
 				// Prepare the frame cache:
 				Shared<FrameCache> cache = new FrameCache;
@@ -167,7 +173,7 @@ namespace TransformFlow
 				cache->video_frame = frame;
 
 				// The initial transform is the device transform:
-				cache->global_transform = IDENTITY;
+				cache->global_transform = device_transform;
 
 				// Calculate the transform applied by gravity:
 				{
@@ -176,11 +182,11 @@ namespace TransformFlow
 						Vec3 s = cross_product(down, frame.gravity);
 
 						Mat44 gravity_rotation = rotate(angle, -s);
-						cache->global_transform = cache->global_transform << gravity_rotation;
+						cache->global_transform = gravity_rotation << cache->global_transform;
 					}
 				}
 
-				cache->global_transform = rotate<Z>(-frame.bearing) << device_transform << cache->global_transform;
+				cache->global_transform = rotate<Y>(-frame.bearing) << cache->global_transform << renderer_transform;
 
 				// Calculate the local transform, if any:
 				if (previous) {
@@ -191,8 +197,16 @@ namespace TransformFlow
 				
 				_frame_cache.push_back(cache);
 				previous = cache;
-				
-				//rotation = rotation << frame.rotation;
+
+				// There is a slight problem, since this visualisation doesn't do spherical projections, the actual FOV will be a bit inaccurate at the edges. Perhaps updating the renderer to do spherical projections could be a good idea?
+				if (0) {
+					// Check frame FOV:
+					auto a = cache->global_transform * (image_box.corner({false, false}) << 0.0);
+					auto b = cache->global_transform * (image_box.corner({true, false}) << 0.0);
+					auto c = cache->global_transform * (image_box.corner({true, true}) << 0.0);
+
+					log_debug("fov:", R2D * a.angle_between(b), R2D * b.angle_between(c));
+				}
 				
 				// Setup particles
 				for (Vec2 offset : cache->feature_points()->offsets()) {

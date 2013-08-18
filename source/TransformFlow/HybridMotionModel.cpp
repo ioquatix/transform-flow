@@ -39,7 +39,7 @@ namespace TransformFlow
 			// At least 3 vertical edges contributed to this sample:
 			if (offset.number_of_samples() > 3) {
 				// This offset is measured in pixels, so we convert it to degrees and use it to rectify errors in the gyro/compass:
-				RealT bearing_offset = image_update.angle_of(offset.value());
+				RealT bearing_offset = R2D * image_update.angle_of(offset.value());
 
 				//log_debug("bearing offset", bearing_offset, "actual offset", (_bearing - _previous_bearing));
 
@@ -49,6 +49,8 @@ namespace TransformFlow
 
 				note << "Updating bearing by " << bearing_offset << " from offset = " << offset.value() << std::endl;
 			} else {
+				_bearing = _previous_bearing;
+
 				note << "Not confident enough to update feature transform" << std::endl;
 			}
 

@@ -109,7 +109,8 @@ namespace TransformFlow
 		_camera = new BirdsEyeCamera;
 		_camera->set_distance(10);
 		_camera->set_multiplier(Vec3(0.1, 0.1, 0.01));
-		
+		_camera->set_up(Vec3(0, 1, 0));
+
 		_projection = new PerspectiveProjection(R90 * 0.7, 1, 1024 * 12);
 		_viewport = new Viewport(_camera, _projection);
 		_viewport->set_bounds(AlignedBox<2>(ZERO, manager->display_context()->size()));
@@ -299,7 +300,7 @@ namespace TransformFlow
 		} else if (input.button_pressed('p')) {
 			Vec2u range = _video_stream_renderer->range();
 			
-			if (range[0] < (_video_stream->images().size() - 1))
+			if (range[0] < (_video_stream->images().size() - 2))
 				range[0] += 1;
 			
 			_video_stream_renderer->set_range(range);
@@ -396,11 +397,13 @@ namespace TransformFlow
 
 		Path root_data_path = "/Users/samuel/Documents/University/Study/Thesis/transform-flow/Data";
 
-		Path data_path = root_data_path + "VideoStream-2013-07-09-16-04-47";
+		//Path data_path = root_data_path + "VideoStream-2013-07-09-16-04-47";
+		Path data_path = root_data_path + "VideoStream-2013-07-09-17-58-39";
 
 		// Select the appropriate motion model:
-		//Ref<MotionModel> motion_model = new BasicSensorMotionModel;
-		Ref<MotionModel> motion_model = new HybridMotionModel;
+		Ref<MotionModel> motion_model = new BasicSensorMotionModel;
+		//Ref<MotionModel> motion_model = new HybridMotionModel;
+		//Ref<MotionModel> motion_model = new OpticalFlowMotionModel;
 
 		Ref<VideoStream> video_stream = new VideoStream(data_path, motion_model);
 		
