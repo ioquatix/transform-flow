@@ -4,9 +4,9 @@ Transform Flow is a tool for analysing mobile phone sensor data and video stream
 
 ## Build and Install
 
-Use [teapot][teapot] to build and install Transform Flow:
+Use [teapot][teapot] to build and install Transform Flow. You will need Ruby 1.9.3+ (preferably 2.0+) to install:
 
-	$ sudo gem install teapot
+	$ gem install teapot
 
 Once you've downloaded source code, build as follows:
 
