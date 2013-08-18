@@ -7,16 +7,18 @@ Transform Flow is a tool for analysing mobile phone sensor data and video stream
 Use [teapot][teapot] to build and install Transform Flow:
 
 	$ sudo gem install teapot
+
+Once you've downloaded source code, build as follows:
+
 	$ cd transform-flow
+	$ teapot fetch
 	$ teapot build Library/TransformFlow variant-debug
 
-To run Transform Flow with the included sample data:
+To run Transform Flow visualisation with the included sample data:
 
 	$ export DATA="`pwd`/data"
-	$ cd ./teapot/platforms/transform-flow/$PLATFORM/Applications/Transform Flow
+	$ cd "./teapot/platforms/transform-flow/$PLATFORM/Applications/Transform Flow"
 	$ ./transform-flow "$DATA/VideoStream-2013-07-09-16-07-26-Sample" BasicSensorMotionModel
-
-You will need some sample data sets.
 
 Currently, only Mac OS X and Linux are supported using standards conformant C++11 compilers.
 
