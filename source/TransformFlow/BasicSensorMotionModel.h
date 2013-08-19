@@ -34,8 +34,6 @@ namespace TransformFlow
 			virtual void update(const HeadingUpdate & heading_update);
 			virtual void update(const MotionUpdate & motion_update);
 			virtual void update(const ImageUpdate & image_update);
-
-			Radians<> tilt() const;
 	};
 }
 

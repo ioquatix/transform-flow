@@ -118,6 +118,8 @@ namespace TransformFlow
 			virtual void update(const MotionUpdate & motion_update) = 0;
 			virtual void update(const ImageUpdate & image_update) = 0;
 
+			Radians<> tilt() const;
+
 			const Vec3 & gravity() const { return _gravity; }
 			const Vec3 & position() const { return _position; }
 			Radians<> bearing() const { return degrees(_bearing); }

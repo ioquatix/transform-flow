@@ -8,9 +8,12 @@
 
 #include "MotionModel.h"
 
+#include <Euclid/Geometry/Plane.h>
+
 namespace TransformFlow
 {
 	using namespace Dream::Events::Logging;
+	using namespace Euclid::Geometry;
 
 	SensorUpdate::~SensorUpdate()
 	{
@@ -200,5 +203,16 @@ namespace TransformFlow
 	void MotionModel::update(SensorUpdate * sensor_update)
 	{
 		sensor_update->apply(this);
+	}
+
+	Radians<> MotionModel::tilt() const
+	{
+		// This code is image-space-specific, and assumes that forward is -z.
+		auto right = cross_product(gravity(), {0, 0, -1});
+
+		// This is in image-space.
+		auto angle = right.angle_between({0, 1, 0});
+
+		return angle;
 	}
 }

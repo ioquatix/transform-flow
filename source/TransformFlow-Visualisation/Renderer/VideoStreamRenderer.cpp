@@ -26,11 +26,12 @@ namespace TransformFlow
 			feature_particles = new MarkerParticles;
 		}
 		
-		VideoStreamRenderer::FrameCache::~FrameCache() {
-			
+		VideoStreamRenderer::FrameCache::~FrameCache()
+		{
 		}
 		
-		Plane<3> VideoStreamRenderer::FrameCache::frame_plane() const {
+		Plane<3> VideoStreamRenderer::FrameCache::frame_plane() const
+		{
 			Vec3 center = global_transform * (image_box.center() << 0.0);
 			Vec4 normal = global_transform * Vec4(0, 0, -1, 0);
 			
@@ -38,7 +39,8 @@ namespace TransformFlow
 			return Plane<3>(-center, normal.reduce());
 		}
 		
-		Vec3 VideoStreamRenderer::FrameCache::global_coordinate_of_pixel_coordinate(Vec2 point) {
+		Vec3 VideoStreamRenderer::FrameCache::global_coordinate_of_pixel_coordinate(Vec2 point)
+		{
 			// We need to calculate the global positioning of the pixel:
 			Vec2 normalized_point = point / image_buffer()->size();
 			Vec2 center = image_box.absolute_position_of(normalized_point);
@@ -49,7 +51,8 @@ namespace TransformFlow
 			return global_coordinate;
 		}
 		
-		Vec2 VideoStreamRenderer::FrameCache::pixel_coordinate_of_global_coordinate(Vec3 point) {
+		Vec2 VideoStreamRenderer::FrameCache::pixel_coordinate_of_global_coordinate(Vec3 point)
+		{
 			Vec3 local_coordinate = inverse(global_transform) * point;
 			
 			Vec2 normalized_point = image_box.relative_offset_of(local_coordinate.reduce());
@@ -58,7 +61,8 @@ namespace TransformFlow
 			return pixel_coordinate;
 		}
 				
-		void VideoStreamRenderer::FrameCache::select(std::size_t index) {
+		void VideoStreamRenderer::FrameCache::select(std::size_t index)
+		{
 			if (selected_feature_index != (std::size_t)-1) {
 				marker_particles->particles()[selected_feature_index].color = Vec3(1.0, 1.0, 1.0);
 			}
@@ -70,7 +74,8 @@ namespace TransformFlow
 			}
 		}
 		
-		void VideoStreamRenderer::FrameCache::find_vertical_edges() {
+		void VideoStreamRenderer::FrameCache::find_vertical_edges()
+		{
 			if (selected_feature_index != (std::size_t)-1) {
 				// We just use 2-space gravity as we are interested in the delta as applied to the captured image. If the camera is pointing up or down, the gravity vector can't be easily applied to the image.
 				Vec2 gravity = (global_transform * video_frame.gravity).reduce();
@@ -91,7 +96,8 @@ namespace TransformFlow
 			}
 		}
 		
-		VideoStreamRenderer::VideoStreamRenderer(Ptr<RendererState> renderer_state) : _renderer_state(renderer_state) {
+		VideoStreamRenderer::VideoStreamRenderer(Ptr<RendererState> renderer_state) : _renderer_state(renderer_state)
+		{
 			_marker_renderer = new MarkerRenderer(renderer_state);
 			_billboard_marker_renderer = new MarkerRenderer(renderer_state, true);
 			
@@ -137,11 +143,12 @@ namespace TransformFlow
 			_axis_renderer = new AxisRenderer(renderer_state);
 		}
 		
-		VideoStreamRenderer::~VideoStreamRenderer() {
-			
+		VideoStreamRenderer::~VideoStreamRenderer()
+		{
 		}
 
-		void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream) {
+		void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream)
+		{
 			if (_frame_cache.size() != 0) return;
 
 			// iPhone sensor "down".

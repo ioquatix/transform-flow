@@ -8,12 +8,8 @@
 
 #include "BasicSensorMotionModel.h"
 
-#include <Euclid/Geometry/Plane.h>
-
 namespace TransformFlow
 {
-	using namespace Euclid::Geometry;
-
 	double interpolateAnglesRadians(double a, double b, double blend)
 	{
 		double ix = sin(a), iy = cos(a);
@@ -75,18 +71,5 @@ namespace TransformFlow
 
 	void BasicSensorMotionModel::update(const ImageUpdate & image_update)
 	{
-	}
-
-	Radians<> BasicSensorMotionModel::tilt() const
-	{
-		// This is in device-space/image-space.
-		Vec3 north{0, 0, -1};
-
-		auto heading = Quat(rotate<Z>(-bearing())) * north;
-
-		Plane3 flat_plane(Vec3{0}, heading);
-		Vec3 planar_gravity = flat_plane.closest_point(gravity());
-
-		return planar_gravity.angle_between({1, 0, 0});
 	}
 }
