@@ -19,8 +19,8 @@ define_target "transform-flow" do |target|
 	target.depends "Library/Dream"
 	target.depends "Library/opencv"
 	
-	target.provides "Library/TaggedFormat" do
-		append linkflags "-lTaggedFormat"
+	target.provides "Library/TransformFlow" do
+		append linkflags "-lTransformFlow"
 	end
 end
 
