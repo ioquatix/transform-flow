@@ -205,6 +205,11 @@ namespace TransformFlow
 		sensor_update->apply(this);
 	}
 
+	bool MotionModel::localization_valid() const
+	{
+		return !gravity().equivalent({0, 0, 0});
+	}
+
 	Radians<> MotionModel::tilt() const
 	{
 		// This code calculates the right vector in device centric coordinates.

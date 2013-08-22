@@ -50,7 +50,8 @@ namespace TransformFlow
 			
 			std::size_t _frame_index, _feature_index;
 			
-			struct FrameCache {
+			struct FrameCache
+			{
 				FrameCache();
 				virtual ~FrameCache();
 				

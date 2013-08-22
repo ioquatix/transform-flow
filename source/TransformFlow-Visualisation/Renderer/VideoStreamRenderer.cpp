@@ -158,10 +158,8 @@ namespace TransformFlow
 			//Mat44 rotation(IDENTITY);
 			Shared<FrameCache> previous;
 			
-			for (auto & frame : video_stream->images()) {
-				if (frame.gravity.equivalent(0))
-					continue;
-
+			for (auto & frame : video_stream->images())
+			{
 				// Calculate the image box:
 				Vec2 box_size = Vec2(frame.image_update->image_buffer->size()) / _scale;
 				AlignedBox2 image_box = AlignedBox2::from_center_and_size(ZERO, box_size);
@@ -245,9 +243,6 @@ namespace TransformFlow
 				update_cache(video_stream);
 								
 				for (auto & frame : _frame_cache) {
-					if (frame->video_frame.gravity.equivalent(0))
-						continue;
-					
 					binding.set_uniform("transform_matrix", frame->global_transform);
 					
 					if (offset >= start)

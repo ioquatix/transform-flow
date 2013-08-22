@@ -34,6 +34,9 @@ namespace TransformFlow {
 			_motion_model->update(update.get());
 
 			if (Shared<ImageUpdate> image_update = update) {
+				// Skip frames which don't have appropriate 
+				if (!_motion_model->localization_valid()) continue;
+
 				VideoFrame video_frame;
 
 				video_frame.image_update = image_update;

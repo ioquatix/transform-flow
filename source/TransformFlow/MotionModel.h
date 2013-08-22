@@ -120,6 +120,9 @@ namespace TransformFlow
 
 			Radians<> tilt() const;
 
+			// Returns whether the motion model is valid for tracking.
+			virtual bool localization_valid() const;
+
 			const Vec3 & gravity() const { return _gravity; }
 			const Vec3 & position() const { return _position; }
 			Radians<> bearing() const { return degrees(_bearing); }
