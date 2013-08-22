@@ -19,6 +19,40 @@ namespace TransformFlow
 {
 	namespace Renderer
 	{
+		// This should be moved to its own file at some point. Perhaps a utilities library in dream framework?
+		template <typename IteratorT>
+		class Range
+		{
+			protected:
+				IteratorT _begin;
+				IteratorT _end;
+
+			public:
+				Range(IteratorT begin, IteratorT end) : _begin(begin), _end(end)
+				{
+				}
+
+				IteratorT begin() { return _begin; }
+				IteratorT end() { return _end; }
+		};
+
+		template <typename IteratorT>
+		Range<IteratorT> range_for(IteratorT & begin, IteratorT & end)
+		{
+			return {begin, end};
+		}
+
+		template <typename ContainerT>
+		Range<typename ContainerT::iterator> range_for(ContainerT & container, std::size_t offset, std::size_t count)
+		{
+			auto begin = std::begin(container) + offset;
+
+			assert((offset) <= container.size());
+			assert((offset + count) <= container.size());
+
+			return {begin, begin + count};
+		}
+
 		VideoStreamRenderer::FrameCache::FrameCache() : selected_feature_index((std::size_t)-1)
 		{
 			marker_particles = new MarkerParticles;
@@ -150,10 +184,6 @@ namespace TransformFlow
 
 		void VideoStreamRenderer::update_cache(Ptr<VideoStream> video_stream)
 		{
-			if (_frame_cache.size() != 0) return;
-			
-			// Faux rotation
-			//Mat44 rotation(IDENTITY);
 			Shared<FrameCache> previous;
 			
 			for (auto & frame : video_stream->images())
@@ -232,59 +262,43 @@ namespace TransformFlow
 		
 		void VideoStreamRenderer::render_frame_for_time(TimeT time, Ptr<VideoStream> video_stream)
 		{
-			{
-				std::size_t start = _start, count = _count, offset = 0;
-				
+			// Update the frame cache if required.
+			if (_frame_cache.size() == 0) update_cache(video_stream);
+
+			auto frames = range_for(_frame_cache, _start, _count);
+
+			{				
 				glEnable(GL_DEPTH_TEST);
 
 				auto binding = _frame_program->binding();
 				binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix());
-							
-				// Update the frame cache if required.
-				update_cache(video_stream);
 								
-				for (auto & frame : _frame_cache) {
+				for (auto & frame : frames)
+				{
 					binding.set_uniform("transform_matrix", frame->global_transform);
-					
-					if (offset >= start)
-						_pixel_buffer_renderer->render(frame->image_box, frame->image_buffer());
-									
-					if (offset >= start && --count == 0)
-						break;
-					
-					offset += 1;
+					_pixel_buffer_renderer->render(frame->image_box, frame->image_buffer());
 				}
 
 				glDisable(GL_DEPTH_TEST);
 			}
 			
 			{
-				std::size_t start = _start, count = _count, offset = 0;
-
 				glDisable(GL_CULL_FACE);
 				glDisable(GL_DEPTH_TEST);
 				
-				for (auto & frame : _frame_cache) {
+				for (auto & frame : frames)
+				{
 					frame->marker_particles->update(time);
 					frame->debug_particles->update(time);
 					frame->feature_particles->update(time);
 
-					if (offset == _start) {
-						_marker_renderer->render(frame->marker_particles, frame->global_transform);
-						_billboard_marker_renderer->render(frame->debug_particles, IDENTITY);
-						_marker_renderer->render(frame->feature_particles, frame->global_transform);
-					}
-					
-					if (offset >= start && --count == 0)
-						break;
-					
-					offset += 1;
+					_marker_renderer->render(frame->marker_particles, frame->global_transform);
+					_billboard_marker_renderer->render(frame->debug_particles, IDENTITY);
+					_marker_renderer->render(frame->feature_particles, frame->global_transform);
 				}
 
 				glEnable(GL_DEPTH_TEST);
-
 				_axis_renderer->render(IDENTITY);
-
 				glEnable(GL_CULL_FACE);
 			}
 
@@ -292,63 +306,64 @@ namespace TransformFlow
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-				std::size_t start = _start, count = _count, offset = 0;
 				auto binding = _wireframe_program->binding();
 
 				glDepthMask(GL_FALSE);
-				
-				for (auto & frame : _frame_cache) {
+
+				for (auto & frame : _frame_cache)
+				{
 					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->global_transform);
 					binding.set_uniform("major_color", Vec4(0.4, 0.4, 0.4, 0.4));
 
 					_wireframe_renderer->render(frame->image_box);
+				}
 
+				for (auto & frame : frames)
+				{
+					binding.set_uniform("display_matrix", _renderer_state->viewport->display_matrix() * frame->global_transform);
+					
 					Ref<FeaturePoints> feature_points = frame->feature_points();
+					Ref<FeatureTable> table = feature_points->table();
+					
+					binding.set_uniform("major_color", Vec4(1.0, 0.4, 0.4, 0.89));
 
-					if (offset == _start) {
-						Ref<FeatureTable> table = feature_points->table();
-						binding.set_uniform("major_color", Vec4(1.0, 0.4, 0.4, 0.89));
+					for (auto chain : table->chains()) {
+						std::vector<Vec3> points;
 
-						for (auto chain : table->chains()) {
-							std::vector<Vec3> points;
+						while (chain != nullptr) {
+							Vec2 normalized_point = chain->offset / frame->image_buffer()->size();
+							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
 
-							while (chain != nullptr) {
-								Vec2 normalized_point = chain->offset / frame->image_buffer()->size();
-								Vec2 center = frame->image_box.absolute_position_of(normalized_point);
+							points.push_back(center << 0.01);
 
-								points.push_back(center << 0.01);
-
-								chain = chain->next;
-							}
-
-							_wireframe_renderer->render(points, LINE_STRIP);
+							chain = chain->next;
 						}
-						
-						binding.set_uniform("major_color", Vec4(0.1, 0.2, 1.0, 0.75));
 
-						// *** Render horizontal scan lines
-						for (auto & segment : feature_points->segments()) {
-							std::vector<Vec3> points;
-
-							{
-								Vec2 normalized_point = segment.start() / frame->image_buffer()->size();
-								Vec2 center = frame->image_box.absolute_position_of(normalized_point);
-
-								points.push_back(center << 0.01);
-							}
-
-							{
-								Vec2 normalized_point = segment.end() / frame->image_buffer()->size();
-								Vec2 center = frame->image_box.absolute_position_of(normalized_point);
-
-								points.push_back(center << 0.01);
-							}
-
-							_wireframe_renderer->render(points, LINE_STRIP);
-						}
+						_wireframe_renderer->render(points, LINE_STRIP);
 					}
+					
+					binding.set_uniform("major_color", Vec4(0.1, 0.2, 1.0, 0.75));
 
-					offset += 1;
+					// *** Render horizontal scan lines
+					for (auto & segment : feature_points->segments()) {
+						std::vector<Vec3> points;
+
+						{
+							Vec2 normalized_point = segment.start() / frame->image_buffer()->size();
+							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
+
+							points.push_back(center << 0.01);
+						}
+
+						{
+							Vec2 normalized_point = segment.end() / frame->image_buffer()->size();
+							Vec2 center = frame->image_box.absolute_position_of(normalized_point);
+
+							points.push_back(center << 0.01);
+						}
+
+						_wireframe_renderer->render(points, LINE_STRIP);
+					}
 				}
 				
 				glDepthMask(GL_TRUE);
