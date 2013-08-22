@@ -214,7 +214,7 @@ namespace TransformFlow
 	{
 		// This code calculates the right vector in device centric coordinates.
 		// If gravity is naturally -Y, then forward is +Z, then right is +X.
-		auto right = cross_product({0, 0, 1}, gravity());
+		auto right = cross_product({0, 0, 1}, gravity()).normalize();
 
 		// The image Y axis in device space points towards the right when gravity is device space -Y and forward is +Z.
 		auto angle = right.angle_between({0, 1, 0});
