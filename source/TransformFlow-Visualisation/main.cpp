@@ -168,7 +168,7 @@ namespace TransformFlow
 			using namespace Text;
 			
 			_font = resource_loader()->load<Font>("Fonts/Monaco");
-			_font->set_pixel_size(18);
+			_font->set_pixel_size(14);
 
 			_text_buffer = new TextBuffer(_font);
 			_text_renderer = new ImageRenderer(renderer_state->texture_manager);
@@ -300,7 +300,7 @@ namespace TransformFlow
 		} else if (input.button_pressed('p')) {
 			Vec2u range = _video_stream_renderer->range();
 			
-			if (range[0] < (_video_stream->images().size() - 2))
+			if (range[0] < (_video_stream->frames().size() - 2))
 				range[0] += 1;
 			
 			_video_stream_renderer->set_range(range);
@@ -332,15 +332,15 @@ namespace TransformFlow
 
 			{
 				auto range = this->_video_stream_renderer->range();
-				auto & first_image_update = this->_video_stream->images().at(range[0]);
+				auto & first_frame = this->_video_stream->frames().at(range[0]);
 
-				buffer << "Gravity: " << first_image_update.gravity << std::endl;
-				buffer << "Tilt: " << first_image_update.tilt.value * R2D << std::endl;
-				buffer << "Time Offset: " << first_image_update.image_update->time_offset << std::endl;
+				buffer << "Gravity: " << first_frame.gravity << std::endl;
+				buffer << "Tilt: " << first_frame.tilt.value * R2D << std::endl;
+				buffer << "Time Offset: " << first_frame.image_update->time_offset << std::endl;
 				//buffer << "Tilt: " << first_image_update.tilt() * R2D << std::endl;
 
 				auto index = this->_video_stream_renderer->selected_feature_point();
-				auto & image_update = this->_video_stream->images().at(index[0]).image_update;
+				auto & image_update = first_frame.image_update;
 
 				buffer << "Feature Index: " << index << std::endl;
 
@@ -354,6 +354,13 @@ namespace TransformFlow
 				}
 				
 				buffer << "Frame Index: " << range << std::endl;
+
+				auto notes = image_update->notes;
+
+				for (auto & note : notes)
+				{
+					buffer << note;
+				}
 			}
 
 			_text_buffer->set_text(buffer.str());

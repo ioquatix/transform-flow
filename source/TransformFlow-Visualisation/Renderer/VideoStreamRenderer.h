@@ -98,13 +98,6 @@ namespace TransformFlow
 			void set_range(Vec2u range) {
 				_start = range[0];
 				_count = range[1];
-
-				log_debug("Notes for frame", _start);
-				auto notes = _frame_cache[_start]->video_frame.image_update->notes;
-				for (auto & note : notes)
-				{
-					log_debug("* ", note);
-				}
 			}
 			
 			Vec2u range() const {

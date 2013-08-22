@@ -36,13 +36,13 @@ namespace TransformFlow
 			Ref<SensorData> _sensor_data;
 			Ref<MotionModel> _motion_model;
 
-			std::vector<VideoFrame> _images;
+			std::vector<VideoFrame> _frames;
 
 		public:
 			VideoStream(const Path & path, Ref<MotionModel> motion_model);
 			virtual ~VideoStream() noexcept;
 
-			const std::vector<VideoFrame> & images() const { return _images; }
+			const std::vector<VideoFrame> & frames() const { return _frames; }
 	};
 }
 

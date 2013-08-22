@@ -48,7 +48,7 @@ namespace TransformFlow {
 
 				//log_debug("Video Frame", "Gravity", video_frame.gravity, "Bearing", video_frame.bearing);
 
-				_images.push_back(video_frame);
+				_frames.push_back(video_frame);
 			}
 		}
 	}

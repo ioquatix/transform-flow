@@ -186,7 +186,7 @@ namespace TransformFlow
 		{
 			Shared<FrameCache> previous;
 			
-			for (auto & frame : video_stream->images())
+			for (auto & frame : video_stream->frames())
 			{
 				// Calculate the image box:
 				Vec2 box_size = Vec2(frame.image_update->image_buffer->size()) / _scale;
