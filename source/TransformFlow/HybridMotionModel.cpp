@@ -43,15 +43,16 @@ namespace TransformFlow
 
 				//log_debug("bearing offset", bearing_offset, "actual offset", (_bearing - _previous_bearing));
 
-				auto updated_bearing = interpolateAnglesDegrees(_bearing, _previous_bearing + bearing_offset, 1.0);
+				auto updated_bearing = interpolateAnglesDegrees(_bearing, _previous_bearing + bearing_offset, 0.5);
 				//log_debug("Bearing update", _bearing, "previous bearing", _previous_bearing, "updated bearing", updated_bearing, "bearing offset", bearing_offset, "pixel offset", offset.value());
 				_bearing = updated_bearing;
 
-				note << "Updating bearing by " << bearing_offset << " from offset = " << offset.value() << std::endl;
+				note << "Hybrid update. Image: " << bearing_offset << " Gyroscope: " << (_bearing - _previous_bearing) << std::endl;
 			} else {
-				_bearing = _previous_bearing;
+				// If you enable this, you can compute only bearing changes by the image processing algorithm.
+				//_bearing = _previous_bearing;
 
-				note << "Not confident enough to update feature transform" << std::endl;
+				note << "Sensor update. Gyroscope: " << (_bearing - _previous_bearing) << std::endl;
 			}
 
 			image_update.add_note(note.str());
