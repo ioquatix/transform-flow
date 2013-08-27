@@ -24,7 +24,11 @@ Currently, only Mac OS X and Linux are supported using standards conformant C++1
 
 [teapot]: http://www.kyusu.org
 
-## Stream Format
+## Stream Capture
+
+The current stream capture tool is written for iOS and compiled using Xcode. You can find this project in `opt/Video Stream Capture-iOS`.
+
+### Stream Format
 
 The video stream format consists of a directory of images and a CSV log file.
 
