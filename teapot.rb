@@ -48,5 +48,5 @@ define_configuration "transform-flow" do |configuration|
 	
 	configuration.require "opencv"
 	
-	configuration[:run] = ["Dependencies/TransformFlow"]
+	configuration[:run] = ["Library/TransformFlow"]
 end
