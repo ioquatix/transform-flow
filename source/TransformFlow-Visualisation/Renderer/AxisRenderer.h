@@ -9,14 +9,14 @@
 #ifndef TRANSFORMFLOW_AXISRENDERER_H
 #define TRANSFORMFLOW_AXISRENDERER_H
 
-#include <Dream/Client/Graphics/Renderer.h>
-#include <Dream/Client/Graphics/ParticleRenderer.h>
+#include <Dream/Graphics/Renderer.h>
+#include <Dream/Graphics/ParticleRenderer.h>
 
 namespace TransformFlow
 {
 	using namespace Dream;
 	using namespace Euclid::Numerics;
-	using namespace Dream::Client::Graphics;
+	using namespace Dream::Graphics;
 
 	class AxisRenderer : public Object
 	{

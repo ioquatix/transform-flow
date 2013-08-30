@@ -14,11 +14,11 @@
 #include <Dream/Renderer/Projection.h>
 #include <Dream/Renderer/Viewport.h>
 
-#include <Dream/Client/Graphics/ShaderManager.h>
-#include <Dream/Client/Graphics/TextureManager.h>
-#include <Dream/Client/Graphics/ImageRenderer.h>
-#include <Dream/Client/Graphics/WireframeRenderer.h>
-#include <Dream/Client/Graphics/Renderer.h>
+#include <Dream/Graphics/ShaderManager.h>
+#include <Dream/Graphics/TextureManager.h>
+#include <Dream/Graphics/ImageRenderer.h>
+#include <Dream/Graphics/WireframeRenderer.h>
+#include <Dream/Graphics/Renderer.h>
 
 #include <TransformFlow/FeatureAlgorithm.h>
 #include "AxisRenderer.h"
@@ -28,7 +28,7 @@ namespace TransformFlow
 	namespace Renderer
 	{
 		using namespace Dream::Renderer;
-		using namespace Dream::Client::Graphics;
+		using namespace Dream::Graphics;
 
 		class MarkerRenderer;
 		class MarkerParticles;

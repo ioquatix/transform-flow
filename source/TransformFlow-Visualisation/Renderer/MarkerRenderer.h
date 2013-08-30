@@ -11,15 +11,15 @@
 
 #include <Euclid/Numerics/Matrix.h>
 
-#include <Dream/Client/Graphics/Renderer.h>
-#include <Dream/Client/Graphics/ParticleRenderer.h>
+#include <Dream/Graphics/Renderer.h>
+#include <Dream/Graphics/ParticleRenderer.h>
 
 namespace TransformFlow
 {
 	namespace Renderer
 	{
 		using namespace Dream;
-		using namespace Dream::Client::Graphics;
+		using namespace Dream::Graphics;
 		using namespace Euclid::Numerics;
 
 		// The actual particle simulation/drawing code:

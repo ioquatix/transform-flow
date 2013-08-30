@@ -6,11 +6,10 @@
 //  Copyright 2011 Orion Transfer Ltd. All rights reserved.
 //
 
-#include <Dream/Client/Client.h>
-#include <Dream/Client/Display/Application.h>
+#include <Dream/Display/Application.h>
 
-#include <Dream/Client/Graphics/ShaderManager.h>
-#include <Dream/Client/Graphics/TextureManager.h>
+#include <Dream/Graphics/ShaderManager.h>
+#include <Dream/Graphics/TextureManager.h>
 
 #include <Dream/Renderer/Viewport.h>
 #include <Dream/Renderer/BirdsEyeCamera.h>
@@ -22,9 +21,9 @@
 #include <Dream/Text/Font.h>
 #include <Dream/Text/TextBuffer.h>
 
-#include <Dream/Client/Graphics/MeshBuffer.h>
-#include <Dream/Client/Graphics/ImageRenderer.h>
-#include <Dream/Client/Graphics/WireframeRenderer.h>
+#include <Dream/Graphics/MeshBuffer.h>
+#include <Dream/Graphics/ImageRenderer.h>
+#include <Dream/Graphics/WireframeRenderer.h>
 
 #include <Euclid/Geometry/Generate/Planar.h>
 
@@ -41,8 +40,8 @@ namespace TransformFlow
 	using namespace Dream::Events;
 	using namespace Dream::Resources;
 	using namespace Dream::Renderer;
-	using namespace Dream::Client::Display;
-	using namespace Dream::Client::Graphics;
+	using namespace Dream::Display;
+	using namespace Dream::Graphics;
 	using namespace Euclid;
 	
 	class ImageSequenceScene : public Scene
@@ -438,7 +437,7 @@ namespace TransformFlow
 int main (int argc, const char * argv[])
 {
 	using namespace TransformFlow;
-	using namespace Dream::Client::Display;
+	using namespace Dream::Display;
 	
 	Ref<TransformFlowApplicationDelegate> delegate = new TransformFlowApplicationDelegate;
 	

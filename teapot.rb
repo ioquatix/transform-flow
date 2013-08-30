@@ -16,7 +16,7 @@ define_target "transform-flow" do |target|
 	target.depends :platform
 	target.depends "Language/C++11"
 	
-	target.depends "Library/Dream"
+	target.depends "Library/Dream/Client"
 	target.depends "Library/opencv"
 	
 	target.provides "Library/TransformFlow" do
