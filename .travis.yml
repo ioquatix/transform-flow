@@ -10,6 +10,8 @@ install:
     - sudo add-apt-repository --yes ppa:h-rayflood/llvm
     - sudo apt-get -qq update
     - sudo apt-get -qq install libstdc++-4.8-dev clang-3.2
+# Dream - openAL
+    - sudo apt-get -qq install libopenal-dev 
 # ruby 2.0 and teapot
     - rvm use 2.0 --install --binary --fuzzy
     - gem install teapot
