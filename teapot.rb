@@ -45,8 +45,16 @@ define_configuration "transform-flow" do |configuration|
 	configuration[:source] = "https://github.com/dream-framework"
 
 	configuration.import! "project"
-	
 	configuration.require "opencv"
 	
 	configuration[:run] = ["Library/TransformFlow"]
+end
+
+define_configuration "travis" do |configuration|
+	configuration[:source] = "https://github.com/dream-framework"
+	
+	configuration.import! "project"
+	configuration.require "opencv"
+	
+	configuration[:run] = ["Test/TransformFlow"]
 end
