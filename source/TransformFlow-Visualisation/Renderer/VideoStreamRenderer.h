@@ -94,7 +94,9 @@ namespace TransformFlow
 			virtual ~VideoStreamRenderer();
 
 			void render_frame_for_time(TimeT time, Ptr<VideoStream> video_stream);
-			
+
+			const std::vector<Shared<FrameCache>> & frame_cache() { return _frame_cache; }
+
 			void set_range(Vec2u range) {
 				_start = range[0];
 				_count = range[1];
@@ -110,7 +112,6 @@ namespace TransformFlow
 			}
 
 			bool apply_feature_algorithm();
-			
 			void find_vertical_edges();
 		};
 	}

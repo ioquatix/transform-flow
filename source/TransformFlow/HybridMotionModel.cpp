@@ -39,15 +39,16 @@ namespace TransformFlow
 			// At least 3 vertical edges contributed to this sample:
 			if (offset.number_of_samples() > 3) {
 				// This offset is measured in pixels, so we convert it to degrees and use it to rectify errors in the gyro/compass:
-				RealT bearing_offset = R2D * image_update.angle_of(offset.value());
+				RealT image_bearing_offset = R2D * image_update.angle_of(offset.value());
+				RealT sensor_bearing_offset = _bearing - _previous_bearing;
+
+				note << "Hybrid update. Image: " << image_bearing_offset << " Gyroscope: " << sensor_bearing_offset << std::endl;
 
 				//log_debug("bearing offset", bearing_offset, "actual offset", (_bearing - _previous_bearing));
 
-				auto updated_bearing = interpolateAnglesDegrees(_bearing, _previous_bearing + bearing_offset, 0.5);
+				auto updated_bearing = interpolateAnglesDegrees(_bearing, _previous_bearing + image_bearing_offset, 0.98);
 				//log_debug("Bearing update", _bearing, "previous bearing", _previous_bearing, "updated bearing", updated_bearing, "bearing offset", bearing_offset, "pixel offset", offset.value());
 				_bearing = updated_bearing;
-
-				note << "Hybrid update. Image: " << bearing_offset << " Gyroscope: " << (_bearing - _previous_bearing) << std::endl;
 			} else {
 				// If you enable this, you can compute only bearing changes by the image processing algorithm.
 				//_bearing = _previous_bearing;

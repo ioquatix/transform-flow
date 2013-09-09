@@ -330,10 +330,11 @@ namespace TransformFlow
 			StringStreamT buffer;
 
 			{
-				auto range = this->_video_stream_renderer->range();
-				auto & first_frame = this->_video_stream->frames().at(range[0]);
+				auto range = _video_stream_renderer->range();
+				auto & first_frame = _video_stream->frames().at(range[0]);
 
 				buffer << "Gravity: " << first_frame.gravity << std::endl;
+				buffer << "Bearing: " << first_frame.bearing * R2D << std::endl;
 				buffer << "Tilt: " << first_frame.tilt.value * R2D << std::endl;
 				buffer << "Time Offset: " << first_frame.image_update->time_offset << std::endl;
 				//buffer << "Tilt: " << first_image_update.tilt() * R2D << std::endl;
@@ -343,10 +344,20 @@ namespace TransformFlow
 
 				buffer << "Feature Index: " << index << std::endl;
 
-				//if (image_update->feature_points && image_update->feature_points->offsets().size() > index[1]) {
-				//	auto feature = image_update->feature_points->offsets().at(index[1]);
-				//	buffer << "Feature Offset: " << feature << std::endl;
-				//}
+				if (first_frame.feature_points && first_frame.feature_points->offsets().size() > index[1])
+				{
+					auto feature = first_frame.feature_points->offsets().at(index[1]);
+					auto frame_cache = _video_stream_renderer->frame_cache()[range[0]];
+
+					auto global_coordinate = frame_cache->global_coordinate_of_pixel_coordinate(feature);
+
+					global_coordinate[Y] = 0;
+					global_coordinate = global_coordinate.normalize();
+
+					Quat rotation = rotate<3>({0, 0, -1}, global_coordinate, {0, 1, 0});
+
+					buffer << "Bearing: " << rotation.angle() * R2D << std::endl;
+				}
 
 				if (image_update->image_buffer) {
 					buffer << "Frame Size: " << image_update->image_buffer->size() << std::endl;
