@@ -7,6 +7,8 @@
 //
 
 #include <Dream/Display/Application.h>
+#include <Dream/Client/ApplicationDelegate.h>
+#include <Dream/Client/Run.h>
 
 #include <Dream/Graphics/ShaderManager.h>
 #include <Dream/Graphics/TextureManager.h>
@@ -390,13 +392,15 @@ namespace TransformFlow
 	class TransformFlowApplicationDelegate : public Object, implements IApplicationDelegate
 	{
 		protected:
+			Ref<ILoader> _loader;
 			Ref<IContext> _context;
 			
 			Path _data_path;
 			Ref<MotionModel> _motion_model;
 		
 		public:
-			~TransformFlowApplicationDelegate ();
+			TransformFlowApplicationDelegate(const Path & runtime_path);
+			~TransformFlowApplicationDelegate();
 			
 			void set_data_path(const Path & data_path) { _data_path = data_path; }
 			void set_motion_model(Ptr<MotionModel> motion_model) { _motion_model = motion_model; }
@@ -407,18 +411,24 @@ namespace TransformFlow
 			void application_did_enter_foreground (IApplication * application);
 	};
 	
-	TransformFlowApplicationDelegate::~TransformFlowApplicationDelegate() {
+	TransformFlowApplicationDelegate::TransformFlowApplicationDelegate(const Path & runtime_path)
+	{
+		log_debug("Loader:", runtime_path);
+		_loader = Client::default_resource_loader(runtime_path);
+	}
+	
+	TransformFlowApplicationDelegate::~TransformFlowApplicationDelegate()
+	{
 	}
 	
 	void TransformFlowApplicationDelegate::application_did_finish_launching (IApplication * application)
-	{		
+	{
 		Ref<Dictionary> config = new Dictionary;
 		_context = application->create_context(config);
 		
 		Ref<Thread> thread = new Events::Thread;
-		Ref<ILoader> loader = SceneManager::default_resource_loader();
 		
-		Ref<SceneManager> scene_manager = new SceneManager(_context, thread->loop(), loader);
+		Ref<SceneManager> scene_manager = new SceneManager(_context, thread->loop(), _loader);
 
 		Ref<VideoStream> video_stream = new VideoStream(_data_path, _motion_model);
 		
@@ -450,7 +460,8 @@ int main (int argc, const char * argv[])
 	using namespace TransformFlow;
 	using namespace Dream::Display;
 	
-	Ref<TransformFlowApplicationDelegate> delegate = new TransformFlowApplicationDelegate;
+	Path runtime_path = Path(argv[0]).parent_path();
+	Ref<TransformFlowApplicationDelegate> delegate = new TransformFlowApplicationDelegate(runtime_path);
 	
 	if (argc != 3) {
 		std::cerr << "Usage: " << Path(argv[0]).last_name_components().basename << " data-path motion-model" << std::endl;
@@ -471,7 +482,7 @@ int main (int argc, const char * argv[])
 	delegate->set_data_path(data_path);
 	delegate->set_motion_model(motion_model);
 	
-	IApplication::start(delegate);
+	Client::run(delegate);
 	
     return 0;
 }
