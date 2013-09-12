@@ -10,7 +10,7 @@
 
 namespace TransformFlow
 {
-	float FeaturePoint::similarity(const FeaturePoint & other)
+	float FeaturePoint::difference(const FeaturePoint & other)
 	{
 		Vec3 da = (a - other.a);
 		Vec3 db = (b - other.b);

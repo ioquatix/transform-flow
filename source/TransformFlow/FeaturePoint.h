@@ -25,7 +25,7 @@ namespace TransformFlow
 		// The gradient of the feature point:
 		Vec3 gradient;
 		
-		float similarity(const FeaturePoint & other);
+		RealT difference(const FeaturePoint & other);
 	};
 }
 
