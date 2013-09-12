@@ -16,7 +16,8 @@ define_target "transform-flow" do |target|
 	target.depends :platform
 	target.depends "Language/C++11"
 	
-	target.depends "Library/Dream/Client"
+	target.depends "Library/Dream"
+	target.depends "Library/Dream/Imaging"
 	target.depends "Library/opencv"
 	
 	target.provides "Library/TransformFlow" do
@@ -42,9 +43,10 @@ define_target "tagged-format-tests" do |target|
 end
 
 define_configuration "transform-flow" do |configuration|
-	configuration[:source] = "https://github.com/dream-framework"
-
-	configuration.import! "project"
+	configuration.public!
+	
+	configuration.require "dream"
+	configuration.require "dream-imaging"
 	configuration.require "opencv"
 	
 	configuration[:run] = ["Library/TransformFlow"]
@@ -52,9 +54,9 @@ end
 
 define_configuration "travis" do |configuration|
 	configuration[:source] = "https://github.com/dream-framework"
-	
-	configuration.import! "project"
-	configuration.require "opencv"
+
+	configuration.require "platforms"
+	configuration.import "transform-flow"
 	
 	configuration[:run] = ["Test/TransformFlow"]
 end
