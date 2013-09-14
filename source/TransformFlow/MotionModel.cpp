@@ -82,7 +82,7 @@ namespace TransformFlow
 	const char * MOTION = "Motion";
 	const char * LOCATION = "Location";
 	const char * HEADING = "Heading";
-	const char * FRAME = "Frame Captured";
+	const char * FRAME = "Frame";
 
 	SensorData::SensorData(const Path & path) : _loader(new Resources::Loader(path)) {
 		_loader->add_loader(new Image::Loader);
@@ -113,7 +113,7 @@ namespace TransformFlow
 		
 		std::string line;
 
-		MotionUpdate motion_update;		
+		MotionUpdate motion_update;
 
 		while (stream->good())
 		{

@@ -1,36 +1,55 @@
-# Transform Flow
+# Transform Flow Visualisation
 
-Transform Flow is a tool for analysing mobile phone sensor data and video streams. It is designed to be a toolbox for developing new algorithms for image alignment, localisation and mapping.
-
-## Build and Install
-
-Use [teapot][teapot] to build and install Transform Flow. You will need Ruby 1.9.3+ (preferably 2.0+) to install:
-
-	$ gem install teapot
-
-Once you've downloaded source code, build as follows:
-
-	$ cd transform-flow
-	$ teapot fetch
-	$ teapot build Library/TransformFlow variant-debug
-
-To run Transform Flow visualisation with the included sample data:
-
-	$ export DATA="`pwd`/data"
-	$ cd "./teapot/platforms/transform-flow/$PLATFORM/Applications/Transform Flow"
-	$ ./transform-flow "$DATA/VideoStream-2013-07-09-16-07-26-Sample" BasicSensorMotionModel
-
-Currently, only Mac OS X and Linux are supported using standards conformant C++11 compilers.
-
-[teapot]: http://www.kyusu.org
-
-## Stream Capture
-
-The current stream capture tool is written for iOS and compiled using Xcode. You can find this project in `opt/Video Stream Capture-iOS`.
+Transform Flow Visualiation is a tool for analysing mobile phone sensor data and video streams. It uses motion models defined by Library/TransformFlow for analysing data sets.
 
 ### Stream Format
 
 The video stream format consists of a directory of images and a CSV log file.
+
+The CSV format is as follows:
+
+	[sequence-number],[event-name],[event-arguments,]
+
+There are several pre-defined events:
+
+	const char * GYROSCOPE = "Gyroscope";
+	const char * ACCELEROMETER = "Accelerometer";
+	const char * GRAVITY = "Gravity";
+	const char * MOTION = "Motion";
+	const char * LOCATION = "Location";
+	const char * HEADING = "Heading";
+	const char * FRAME = "Frame";
+
+### Motion Events
+
+The motion event is a group of device sensor information at a single timestamp. It currently includes the `Gyroscope`, `Accelerometer` and `Gravity` events with the same timestamp and typically takes the form:
+
+	1,Gyroscope,[timestamp],[rotation.x],[rotation.y],[rotation.z]
+	2,Accelerometer,[timestamp],[acceleration.x],[acceleration.y],[acceleration.z]
+	3,Gravity,[timestamp],[gravity.x],[gravity.y],[gravity.z]
+	4,Motion,[timestamp]
+
+The timestamp SHOULD be the same value for grouped motion events.
+
+### Location Events
+
+The location event typically represents an update from the GPS and includes the position and accuracy of the update:
+
+	1,Location,[timestamp],[latitude],[longitude],[accuracy.horizontal],[accuracy.vertical]
+
+### Heading Events
+
+The heading event typically represents an update from the compass. It includes both the magnetic north and true north.
+
+	1,Heading,[timestamp],[heading.magnetic],[heading.true]
+
+### Frame Events
+
+The frame event represents a camera frame captured and includes data as an external PNG file in the same directory as the log file.
+
+	1,Frame,[timestamp],[index]
+
+The file in this case would be called `[index].png`.
 
 ## Contributing
 
