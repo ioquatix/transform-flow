@@ -23,7 +23,7 @@ namespace TransformFlow
 		return interpolateAnglesRadians(a * D2R, b * D2R, blend) * R2D;
 	}
 
-	BasicSensorMotionModel::BasicSensorMotionModel() : _heading_primed(false), _motion_primed(false)
+	BasicSensorMotionModel::BasicSensorMotionModel() : _heading_primed(false), _motion_primed(false), _best_horizontal_accuracy(100)
 	{
 	}
 
@@ -33,6 +33,15 @@ namespace TransformFlow
 
 	void BasicSensorMotionModel::update(const LocationUpdate & location_update)
 	{
+		// We bias this a wee bit so that updates with a similar accuracy +/- 50% will be accepted.
+		if (location_update.horizontal_accuracy < _best_horizontal_accuracy * 1.5)
+		{
+			_position[X] = location_update.latitude;
+			_position[Y] = location_update.longitude;
+			_position[Z] = location_update.altitude;
+			
+			_best_horizontal_accuracy = std::max<RealT>(location_update.horizontal_accuracy, 20);
+		}
 	}
 
 	void BasicSensorMotionModel::update(const HeadingUpdate & heading_update)

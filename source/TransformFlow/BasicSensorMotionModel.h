@@ -26,6 +26,8 @@ namespace TransformFlow
 			bool _motion_primed;
 			MotionUpdate _motion_update;
 
+			RealT _best_horizontal_accuracy;
+
 		public:
 			BasicSensorMotionModel();
 			virtual ~BasicSensorMotionModel();
