@@ -2,7 +2,18 @@
 
 Transform Flow Visualiation is a tool for analysing mobile phone sensor data and video streams. It uses motion models defined by Library/TransformFlow for analysing data sets.
 
-### Stream Format
+## Organisation
+
+Transform Flow is a C++ library for the development of outdoor augmented reality tracking algorithms. It includes a data capture and visualisation tool, as well as a browser application for using the algorithms in real time:
+
+- [Transform Flow](https://github.com/HITLabNZ/transform-flow)
+- [Transform Flow Capture for iOS](https://github.com/HITLabNZ/transform-flow-capture-ios)
+- [Transform Flow Visualisation](https://github.com/HITLabNZ/transform-flow-visualisation)
+- [Transform Flow Browser for iOS](https://github.com/HITLabNZ/transform-flow-browser-ios)
+
+Currently the main development platform is Mac OS X and iOS, but we are expanding this to include Linux and Android.
+
+## Video Stream Format
 
 The video stream format consists of a directory of images and a CSV log file.
 
@@ -35,13 +46,13 @@ The timestamp SHOULD be the same value for grouped motion events.
 
 The location event typically represents an update from the GPS and includes the position and accuracy of the update:
 
-	1,Location,[timestamp],[latitude],[longitude],[accuracy.horizontal],[accuracy.vertical]
+	1,Location,[timestamp],[latitude],[longitude],[horizontal_accuracy],[vertical_accuracy]
 
 ### Heading Events
 
 The heading event typically represents an update from the compass. It includes both the magnetic north and true north.
 
-	1,Heading,[timestamp],[heading.magnetic],[heading.true]
+	1,Heading,[timestamp],[magnetic_bearing],[true_bearing]
 
 ### Frame Events
 
@@ -50,6 +61,16 @@ The frame event represents a camera frame captured and includes data as an exter
 	1,Frame,[timestamp],[index]
 
 The file in this case would be called `[index].png`.
+
+### Device Information
+
+It is useful to log device specific information and frame rates. These are currently not used directly by the visualisation tool, but may be in the future.
+
+	1,Device,[device_name],[device_model],[system_version]
+
+This record is normally logged at the start of the capture.
+
+Additional records relating to configuration may be included (e.g. frame rates, sensor rates) but these are for informational purposes at this time.
 
 ## Contributing
 
