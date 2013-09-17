@@ -24,6 +24,36 @@ Transform Flow is a C++ library for the development of outdoor augmented reality
 
 Currently the main development platform is Mac OS X and iOS, but we are expanding this to include Linux and Android.
 
+## Build
+
+Use [teapot][teapot] to build and install Transform Flow. You will need Ruby 1.9.3+ (preferably 2.0+) to install:
+
+	$ gem install teapot
+
+Once you've downloaded source code, build as follows:
+
+	$ cd transform-flow
+	$ export OSX_SDK_VERSION=10.8
+	$ teapot fetch
+	$ teapot build Library/TransformFlow variant-debug
+
+This will build `libTransformFlow.a` which you can link against.
+
+[teapot]: http://www.kyusu.org
+
+## Usage
+
+Transform Flow provides a set of classes for interacting with static data sets:
+
+	Path data_path = "path/to/data-set";
+	Ref<MotionModel> motion_model = new BasicSensorMotionModel;
+	Ref<VideoStream> video_stream = new VideoStream(data_path, motion_model);
+	
+	auto frames = video_stream->frames()
+	log_debug("Heading", frames[0].heading, "Gravity", frames[0].gravity);
+
+The best place to see a working example is in the code for the [Transform Flow Visualisation](https://github.com/HITLabNZ/transform-flow-visualisation) application.
+
 ## Video Stream Format
 
 The video stream format consists of a directory of images and a CSV log file.
