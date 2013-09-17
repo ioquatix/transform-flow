@@ -2,12 +2,19 @@
 
 Transform Flow Visualiation is a tool for analysing mobile phone sensor data and video streams. It uses motion models defined by Library/TransformFlow for analysing data sets.
 
+There are a number of ways to contribute to this project:
+
+- Support more platforms, primarily Android and Linux, but potentially Windows in the future.
+- Develop motion models, including designing a motion model which reconciles global and local tracking approaches.
+- Better automatic evaluation of motion models in the visualisation tool.
+
 ## Organisation
 
 Transform Flow is a C++ library for the development of outdoor augmented reality tracking algorithms. It includes a data capture and visualisation tool, as well as a browser application for using the algorithms in real time:
 
 - [Transform Flow](https://github.com/HITLabNZ/transform-flow)
 - [Transform Flow Capture for iOS](https://github.com/HITLabNZ/transform-flow-capture-ios)
+- [Transform Flow Data Sets](https://github.com/HITLabNZ/transform-flow-data)
 - [Transform Flow Visualisation](https://github.com/HITLabNZ/transform-flow-visualisation)
 - [Transform Flow Browser for iOS](https://github.com/HITLabNZ/transform-flow-browser-ios)
 
