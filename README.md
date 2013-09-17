@@ -1,12 +1,14 @@
-# Transform Flow Visualisation
+# Transform Flow
 
-Transform Flow Visualiation is a tool for analysing mobile phone sensor data and video streams. It uses motion models defined by Library/TransformFlow for analysing data sets.
+Transform Flow is a library for processing and analysing mobile phone sensor data and video streams. It uses an abstract motion model class to expose various tracking and registration algorithms, and these models can either be applied to static data sets or in real time on a mobile device.
 
 There are a number of ways to contribute to this project:
 
 - Support more platforms, primarily Android and Linux, but potentially Windows in the future.
 - Develop motion models, including designing a motion model which reconciles global and local tracking approaches.
 - Better automatic evaluation of motion models in the visualisation tool.
+
+[![Build Status](https://travis-ci.org/HITLabNZ/transform-flow.png?branch=master)](https://travis-ci.org/HITLabNZ/transform-flow)
 
 ## Organisation
 
