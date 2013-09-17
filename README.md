@@ -26,7 +26,7 @@ Currently the main development platform is Mac OS X and iOS, but we are expandin
 
 ## Build
 
-Use [teapot][teapot] to build and install Transform Flow. You will need Ruby 1.9.3+ (preferably 2.0+) to install:
+Use [teapot][teapot] to build Transform Flow. You will need Ruby 1.9.3+ (preferably 2.0+) to install:
 
 	$ gem install teapot
 
@@ -37,7 +37,7 @@ Once you've downloaded source code, build as follows:
 	$ teapot fetch
 	$ teapot build Library/TransformFlow variant-debug
 
-This will build `libTransformFlow.a` which you can link against.
+For your own projects, you are best to use [teapot][teapot] as it can automatically fetch, build and link your code against TransformFlow. See `teapot.rb` in [Transform Flow Visualisation](https://github.com/HITLabNZ/transform-flow-visualisation) for an example.
 
 [teapot]: http://www.kyusu.org
 
