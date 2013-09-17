@@ -14,6 +14,7 @@ Transform Flow is a C++ library for the development of outdoor augmented reality
 
 - [Transform Flow](https://github.com/HITLabNZ/transform-flow)
 - [Transform Flow Capture for iOS](https://github.com/HITLabNZ/transform-flow-capture-ios)
+- [Transform Flow Capture for Android](https://github.com/HITLabNZ/transform-flow-capture-android) (incomplete)
 - [Transform Flow Data Sets](https://github.com/HITLabNZ/transform-flow-data)
 - [Transform Flow Visualisation](https://github.com/HITLabNZ/transform-flow-visualisation)
 - [Transform Flow Browser for iOS](https://github.com/HITLabNZ/transform-flow-browser-ios)
