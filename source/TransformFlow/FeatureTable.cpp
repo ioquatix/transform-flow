@@ -8,6 +8,7 @@
 
 #include "FeatureTable.h"
 #include "FeaturePoints.h"
+#include "Alignment.h"
 
 #include <Euclid/Numerics/Average.h>
 
@@ -17,17 +18,16 @@ namespace TransformFlow {
 
 	FeatureTable::FeatureTable(std::size_t bins, const AlignedBox2 & bounds, const Radians<> & rotation) : _bounds(ZERO)
 	{
-		_rotation = rotate<Z>(rotation);
+		// The bounds provided are the bounds of the image. Points are image coordinates, but this isn't suitable for binning. We want to bin along the axis perpendicular to gravity, so we make a rotation which does this. We also want to center the table at the origin, so we apply a translation.
+		_transform = rotate<Z>(rotation) << translate(-bounds.size() / 2);
 
 		_bins.resize(bins);
 
 		// Calculate a new rotated bounding box:
-		_bounds.union_with_point(_rotation * bounds.min());
-		_bounds.union_with_point(_rotation * bounds.max());
-		_bounds.union_with_point(_rotation * bounds.corner({false, true}));
-		_bounds.union_with_point(_rotation * bounds.corner({true, false}));
-
-		_size = _bounds.size();
+		_bounds.union_with_point(_transform * bounds.min());
+		_bounds.union_with_point(_transform * bounds.max());
+		_bounds.union_with_point(_transform * bounds.corner({false, true}));
+		_bounds.union_with_point(_transform * bounds.corner({true, false}));
 	}
 
 	void FeatureTable::print_table(std::ostream & output)
@@ -97,13 +97,16 @@ namespace TransformFlow {
 
 	void FeatureTable::update(const std::vector<Vec2> & offsets)
 	{
-		for (auto offset : offsets) {
-			auto aligned_offset = (_rotation * offset) - _bounds.min();
+		for (auto offset : offsets)
+		{
+			// The aligned offset is the coordinate relative to the origin, with -Z = gravity.
+			auto aligned_offset = _transform * offset;
 
-			// We are just concerned with horizontal offset:
-			auto f = aligned_offset[X] / _size[X];
+			// We are just concerned with horizontal offset relative to the bounding box:
+			auto f = (aligned_offset[X] - _bounds.min()[X]) / _bounds.size()[X];
 			DREAM_ASSERT(f >= 0 && f < 1);
 			
+			// Find the appropriate bin for the given offset:
 			std::size_t index = f * _bins.size();
 
 			auto & bin = _bins.at(index);
@@ -145,71 +148,6 @@ namespace TransformFlow {
 		track from one frame to the next by scanning algorithm, adjust size based on edges, perhaps use binary search.
 	*/
 
-	struct AlignmentCost
-	{
-		int offset;
-		float error;
-
-		bool operator>(const AlignmentCost & other) const
-		{
-			return error > other.error;
-		}
-	};
-
-	template <typename SequenceT>
-	AlignmentCost calculate_alignment_cost(const SequenceT & a, const SequenceT & b, int offset)
-	{
-		AlignmentCost cost = {offset, 0};
-
-		std::size_t i = 0, j = 0;
-
-		if (offset > 0)
-			i = offset;
-		else
-			j = -offset;
-
-		while (i < a.size() && j < b.size())
-		{
-			auto d = number(int(a[i].links.size()) - int(b[j].links.size())).absolute();
-
-			cost.error += (d*d);
-
-			i += 1, j += 1;
-		}
-
-		return cost;
-	}
-
-	template <typename ItemT>
-	using PriorityQueueT = std::priority_queue<ItemT, std::vector<ItemT>, std::greater<ItemT>>;
-
-	int FeatureTable::calculate_bin_offset(const FeatureTable & other) const
-	{
-		// We try to find the alignment between two sequences:
-		PriorityQueueT<AlignmentCost> ordered_costs;
-		std::vector<AlignmentCost> costs;
-
-		auto & a = _bins;
-		auto & b = other.bins();
-
-		// The size of the search, left or right of the origin:
-		const int F = 32;
-
-		int min = -(int(b.size()) / F);
-		int max = int(b.size()) / F;
-
-		for (int offset = min; offset < max; offset += 1)
-		{
-			auto cost = calculate_alignment_cost(a, b, offset);
-
-			//log_debug("-- Calculated error at offset:", offset, "=", cost.error);
-
-			ordered_costs.push(cost);
-		}
-
-		return ordered_costs.top().offset;
-	}
-
 	Average<RealT> FeatureTable::average_chain_position(std::size_t bin) const
 	{
 		Average<RealT> distribution;
@@ -225,41 +163,6 @@ namespace TransformFlow {
 
 	Average<RealT> FeatureTable::calculate_offset(const FeatureTable & other) const
 	{
-		auto offset = calculate_bin_offset(other);
-		//log_debug("Calculated bin offset", offset);
-
-		Average<RealT> distribution;
-
-		std::size_t i = 0, j = 0;
-
-		if (offset > 0)
-			i = offset;
-		else
-			j = -offset;
-
-		auto & a = _bins;
-		auto & b = other.bins();
-
-		while (i < a.size() && j < b.size())
-		{
-			auto a_distribution = average_chain_position(i);
-			auto b_distribution = other.average_chain_position(j);
-
-			// Increment counters:
-			i += 1, j += 1;
-
-			// If we don't have enough confidence in our distribution of vertical feature points, we skip this bin.
-			if (a_distribution.number_of_samples() <= 3 || b_distribution.number_of_samples() <= 3)
-				continue;
-
-			auto difference = b_distribution.value() - a_distribution.value();
-			//log_debug("A", a_distribution.value(), "#", a_distribution.number_of_samples(), "B", b_distribution.value(), "#", b_distribution.number_of_samples(), "Difference", difference);
-			
-			distribution.add_sample(difference);
-		}
-
-		//log_debug("Calculated offset", distribution.value(), "#", distribution.number_of_samples());
-
-		return distribution;
+		return align_tables(*this, other);
 	}
 };

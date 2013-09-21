@@ -39,9 +39,7 @@ namespace TransformFlow
 		};
 
 	protected:
-		Vec2u _size;
-
-		Mat22 _rotation;
+		Mat33 _transform;
 		AlignedBox2 _bounds;
 
 		std::vector<Chain *> _chains;

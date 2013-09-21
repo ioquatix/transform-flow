@@ -119,7 +119,9 @@ namespace TransformFlow {
 		
 		_source = source;
 		AlignedBox2 image_box(ZERO, _source->size());
-		image_box.set_center_and_size(image_box.center(), image_box.size() * 0.9);
+		
+		// The image box is a bit smaller since we don't want to scan all the way to the edge:
+		image_box.set_center_and_size(image_box.center(), image_box.size());
 
 		{
 			AlignedBox2 bounds = ZERO;
@@ -142,8 +144,7 @@ namespace TransformFlow {
 
 			auto size = _bounding_box.size();
 
-			auto dy = std::max<std::size_t>(size.length() / 60, 2);
-			auto dx = std::max<std::size_t>(size.length() / 60, 2);
+			auto dy = std::max<std::size_t>(size.length() / 100, 2);
 
 			for (auto y = _bounding_box.min()[Y] + dy; (y + dy) < _bounding_box.max()[Y]; y += dy) {
 				Vec2 min(_bounding_box.min()[X], y), max(_bounding_box.max()[X], y);
@@ -166,7 +167,7 @@ namespace TransformFlow {
 			}
 		}
 
-		_table = new FeatureTable(_bounding_box.size().length() / 3, image_box, tilt);
+		_table = new FeatureTable(_bounding_box.size()[WIDTH] / 2, image_box, tilt);
 		_table->update(_offsets);
 
 		//log_debug("Found", _offsets.size(), "feature points.");
