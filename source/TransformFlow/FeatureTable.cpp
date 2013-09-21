@@ -163,6 +163,10 @@ namespace TransformFlow {
 
 	Average<RealT> FeatureTable::calculate_offset(const FeatureTable & other) const
 	{
+		// No bins -> no data, cannot align.
+		if (_bins.size() == 0 || other.bins().size() == 0)
+			return {};
+
 		return align_tables(*this, other);
 	}
 };
