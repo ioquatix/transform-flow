@@ -53,7 +53,7 @@ namespace TransformFlow {
 		}
 	}
 	
-	VideoStream::~VideoStream()
+	VideoStream::~VideoStream() noexcept
 	{
 	}
 }

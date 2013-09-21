@@ -90,7 +90,8 @@ namespace TransformFlow
 		parse_log();
 	}
 	
-	SensorData::~SensorData() {
+	SensorData::~SensorData() noexcept
+	{
 		
 	}
 	
