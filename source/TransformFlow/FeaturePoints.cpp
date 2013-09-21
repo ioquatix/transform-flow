@@ -144,7 +144,7 @@ namespace TransformFlow {
 
 			auto size = _bounding_box.size();
 
-			auto dy = std::max<std::size_t>(size.length() / 100, 2);
+			auto dy = std::max<std::size_t>(size.length() / 50, 2);
 
 			for (auto y = _bounding_box.min()[Y] + dy; (y + dy) < _bounding_box.max()[Y]; y += dy) {
 				Vec2 min(_bounding_box.min()[X], y), max(_bounding_box.max()[X], y);
