@@ -119,9 +119,6 @@ namespace TransformFlow {
 		
 		_source = source;
 		AlignedBox2 image_box(ZERO, _source->size());
-		
-		// The image box is a bit smaller since we don't want to scan all the way to the edge:
-		image_box.set_center_and_size(image_box.center(), image_box.size() * 0.95);
 
 		{
 			AlignedBox2 bounds = ZERO;
@@ -142,6 +139,8 @@ namespace TransformFlow {
 			// Now we need to enumerate lines in the "rotated" space, and translate them back to image space:
 			Mat22 rotation = rotate<Z>(-tilt);
 
+			AlignedBox2 clipping_box = AlignedBox2::from_center_and_size(image_box.center(), image_box.size() * 0.98);
+
 			auto size = _bounding_box.size();
 
 			auto dy = std::max<std::size_t>(size.length() / 80, 2);
@@ -155,7 +154,7 @@ namespace TransformFlow {
 
 				//log_debug("Features along line segment:", segment.start(), segment.end(), segment.direction());
 
-				if (segment.clip(image_box, clipped_segment)) {
+				if (segment.clip(clipping_box, clipped_segment)) {
 					//log_debug("Clipped line segment:", segment.start(), segment.end(), segment.direction());
 					
 					//DREAM_ASSERT(clipped_segment.direction().equivalent(segment.direction()));
