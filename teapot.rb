@@ -25,7 +25,7 @@ define_target "transform-flow" do |target|
 	end
 end
 
-define_target "tagged-format-tests" do |target|
+define_target "transform-flow-tests" do |target|
 	target.build do |environment|
 		build_directory(package.path, 'test', environment)
 	end
@@ -52,11 +52,15 @@ define_configuration "transform-flow" do |configuration|
 	configuration[:run] = ["Library/TransformFlow"]
 end
 
-define_configuration "travis" do |configuration|
+define_configuration "local" do |configuration|
 	configuration[:source] = "https://github.com/dream-framework"
 
 	configuration.require "platforms"
 	configuration.import "transform-flow"
 	
 	configuration[:run] = ["Test/TransformFlow"]
+end
+
+define_configuration "travis" do |configuration|
+	configuration.import "local"
 end
