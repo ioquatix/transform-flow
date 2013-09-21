@@ -55,10 +55,8 @@ namespace TransformFlow
 		void update(const std::vector<Vec2> & offsets);
 
 		const std::vector<Chain *> & chains() const { return _chains; }
-		const std::vector<Bin> bins() const { return _bins; }
-
-		int calculate_bin_offset(const FeatureTable & other) const;
-
+		const std::vector<Bin> & bins() const { return _bins; }
+		
 		Average<RealT> average_chain_position(std::size_t bin) const;
 		Average<RealT> calculate_offset(const FeatureTable & other) const;
 	};
