@@ -121,7 +121,7 @@ namespace TransformFlow {
 		AlignedBox2 image_box(ZERO, _source->size());
 		
 		// The image box is a bit smaller since we don't want to scan all the way to the edge:
-		image_box.set_center_and_size(image_box.center(), image_box.size());
+		image_box.set_center_and_size(image_box.center(), image_box.size() * 0.95);
 
 		{
 			AlignedBox2 bounds = ZERO;
@@ -144,7 +144,7 @@ namespace TransformFlow {
 
 			auto size = _bounding_box.size();
 
-			auto dy = std::max<std::size_t>(size.length() / 50, 2);
+			auto dy = std::max<std::size_t>(size.length() / 80, 2);
 
 			for (auto y = _bounding_box.min()[Y] + dy; (y + dy) < _bounding_box.max()[Y]; y += dy) {
 				Vec2 min(_bounding_box.min()[X], y), max(_bounding_box.max()[X], y);
