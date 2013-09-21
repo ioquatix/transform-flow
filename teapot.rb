@@ -56,11 +56,11 @@ define_configuration "local" do |configuration|
 	configuration[:source] = "https://github.com/dream-framework"
 
 	configuration.require "platforms"
-	configuration.import "transform-flow"
-	
-	configuration[:run] = ["Test/TransformFlow"]
+	configuration.import "transform-flow"	
 end
 
 define_configuration "travis" do |configuration|
 	configuration.import "local"
+	
+	configuration[:run] = ["Test/TransformFlow"]
 end
