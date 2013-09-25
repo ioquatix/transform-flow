@@ -39,7 +39,8 @@ namespace TransformFlow
 
 			auto dr = _bearing - _previous_bearing;
 			int estimate = image_update.pixels_of(degrees(dr));
-			image_update.add_note((LogBuffer() << "Estimated change = " << estimate).str());
+
+			note << "Estimated change = " << estimate << std::endl;
 
 			auto offset = previous_table->calculate_offset(*current_table, -estimate);
 
