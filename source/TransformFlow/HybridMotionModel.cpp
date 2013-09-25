@@ -9,6 +9,7 @@
 #include "HybridMotionModel.h"
 
 #include <Dream/Events/Logger.h>
+#include <cmath>
 
 namespace TransformFlow
 {
@@ -24,6 +25,8 @@ namespace TransformFlow
 
 	void HybridMotionModel::update(const ImageUpdate & image_update)
 	{
+		if (std::isnan(tilt().value)) return;
+
 		Ref<FeaturePoints> current_feature_points = new FeaturePoints;
 		current_feature_points->scan(image_update.image_buffer, tilt());
 
@@ -34,7 +37,11 @@ namespace TransformFlow
 			auto current_table = current_feature_points->table();
 			auto previous_table = _previous_feature_points->table();
 
-			auto offset = previous_table->calculate_offset(*current_table);
+			auto dr = _bearing - _previous_bearing;
+			int estimate = image_update.pixels_of(degrees(dr));
+			image_update.add_note((LogBuffer() << "Estimated change = " << estimate).str());
+
+			auto offset = previous_table->calculate_offset(*current_table, -estimate);
 
 			// At least 3 vertical edges contributed to this sample:
 			if (offset.number_of_samples() > 3) {

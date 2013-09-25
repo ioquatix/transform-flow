@@ -71,6 +71,11 @@ namespace TransformFlow
 	{
 		return (field_of_view / image_buffer->size()[WIDTH]) * pixels;
 	}
+	
+	RealT ImageUpdate::pixels_of(Radians<> angle) const
+	{
+		return angle / (field_of_view / image_buffer->size()[WIDTH]);
+	}
 
 #pragma mark -
 

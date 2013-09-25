@@ -77,6 +77,7 @@ namespace TransformFlow
 		RealT distance_from_origin();
 
 		Radians<> angle_of(RealT pixels = 1.0) const;
+		RealT pixels_of(Radians<> angle) const;
 	};
 
 	class SensorData : public Object
