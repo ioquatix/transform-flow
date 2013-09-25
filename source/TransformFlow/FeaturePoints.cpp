@@ -60,6 +60,9 @@ namespace TransformFlow {
 				offset[0] = vector(x, y);
 			}
 
+			assert(offset[0].greater_than_or_equal({0, 0}));
+			assert(offset[0].less_than(image->size()));
+
 			pixel[0] = image_reader[offset[0]];
 			//image->read_pixel(offset[0] << 0, pixel[0]);
 			if (count > 0 && skip == 0) {
@@ -113,7 +116,7 @@ namespace TransformFlow {
 		
 	}
 
-	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt)
+	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt, std::size_t dy)
 	{
 		if (_offsets.size()) return;
 		
@@ -141,9 +144,7 @@ namespace TransformFlow {
 
 			AlignedBox2 clipping_box = AlignedBox2::from_center_and_size(image_box.center(), image_box.size() * 0.98);
 
-			auto size = _bounding_box.size();
-
-			auto dy = std::max<std::size_t>(size.length() / 80, 2);
+			//std::max<std::size_t>(_bounding_box.size()[HEIGHT] / 100, 2);
 
 			for (auto y = _bounding_box.min()[Y] + dy; (y + dy) < _bounding_box.max()[Y]; y += dy) {
 				Vec2 min(_bounding_box.min()[X], y), max(_bounding_box.max()[X], y);
@@ -161,12 +162,16 @@ namespace TransformFlow {
 
 					_segments.push_back(clipped_segment);
 
-					features_along_line(source, clipped_segment.start(), clipped_segment.end(), _offsets);
+					Vec2 start = clipped_segment.start();
+					Vec2 end = clipped_segment.end();
+
+					features_along_line(source, start, end, _offsets);
 				}
 			}
 		}
 
-		_table = new FeatureTable(_bounding_box.size()[WIDTH] / 2, image_box, tilt);
+		_table = new FeatureTable(2, image_box, tilt);
+
 		_table->update(_offsets);
 
 		//log_debug("Found", _offsets.size(), "feature points.");

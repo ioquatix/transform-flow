@@ -48,7 +48,8 @@ namespace TransformFlow {
 		FeaturePoints();
 		virtual ~FeaturePoints();
 
-		void scan(Ptr<Image> source, const Radians<> & gravity_rotation);
+		// dy is the distance between scanlines.
+		void scan(Ptr<Image> source, const Radians<> & gravity_rotation, std::size_t dy = 15);
 
 		Ref<FeatureTable> table() { return _table; }
 

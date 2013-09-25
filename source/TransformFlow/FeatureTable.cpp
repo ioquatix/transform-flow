@@ -11,23 +11,38 @@
 #include "Alignment.h"
 
 #include <Euclid/Numerics/Average.h>
+#include <Euclid/Numerics/Interpolate.h>
 
 namespace TransformFlow {
 
 	using namespace Dream::Events::Logging;
 
-	FeatureTable::FeatureTable(std::size_t bins, const AlignedBox2 & bounds, const Radians<> & rotation) : _bounds(ZERO)
+	FeatureTable::FeatureTable(RealT pixels_per_bin, const AlignedBox2 & bounds, const Radians<> & rotation) : _bounds(ZERO), _pixels_per_bin(pixels_per_bin)
 	{
 		// The bounds provided are the bounds of the image. Points are image coordinates, but this isn't suitable for binning. We want to bin along the axis perpendicular to gravity, so we make a rotation which does this. We also want to center the table at the origin, so we apply a translation.
 		_transform = rotate<Z>(rotation) << translate(-bounds.size() / 2);
-
-		_bins.resize(bins);
 
 		// Calculate a new rotated bounding box:
 		_bounds.union_with_point(_transform * bounds.min());
 		_bounds.union_with_point(_transform * bounds.max());
 		_bounds.union_with_point(_transform * bounds.corner({false, true}));
 		_bounds.union_with_point(_transform * bounds.corner({true, false}));
+
+		// Compute number of bins required:
+		std::size_t number_of_bins = (_bounds.size()[WIDTH] + (_pixels_per_bin - 1)) / _pixels_per_bin;
+
+		// We want an even number of bins so that the middle will always align:
+		if (number_of_bins & 1)
+			number_of_bins += 1;
+
+		// Allocate the bins:
+		_bins.resize(number_of_bins);
+
+		auto first_bin_index = bin_index_for_offset(_bounds.min()[X]);
+		assert(first_bin_index == 0);
+
+		auto last_bin_index = bin_index_for_offset(_bounds.max()[X]);
+		assert(last_bin_index == _bins.size() - 1);
 	}
 
 	void FeatureTable::print_table(std::ostream & output)
@@ -95,6 +110,21 @@ namespace TransformFlow {
 		return best_chain;
 	}
 
+	std::size_t FeatureTable::bin_index_for_offset(RealT x)
+	{
+		// We are just concerned with horizontal offset relative to the bounding box:
+		auto f = (x - _bounds.min()[X]) / _bounds.size()[X];
+		assert(f >= 0 && f <= 1);
+		
+		// Find the appropriate bin for the given offset:
+		std::size_t index = (_bins.size() / 2) + (f - 0.5) * _bins.size();
+
+		// The last bin is inclusive, e.g. f=1.0 -> index=size-1
+		if (index == _bins.size()) index = index - 1;
+
+		return index;
+	}
+
 	void FeatureTable::update(const std::vector<Vec2> & offsets)
 	{
 		for (auto offset : offsets)
@@ -102,25 +132,21 @@ namespace TransformFlow {
 			// The aligned offset is the coordinate relative to the origin, with -Z = gravity.
 			auto aligned_offset = _transform * offset;
 
-			// We are just concerned with horizontal offset relative to the bounding box:
-			auto f = (aligned_offset[X] - _bounds.min()[X]) / _bounds.size()[X];
-			DREAM_ASSERT(f >= 0 && f < 1);
-			
-			// Find the appropriate bin for the given offset:
-			std::size_t index = f * _bins.size();
-
+			auto index = bin_index_for_offset(aligned_offset[X]);
 			auto & bin = _bins.at(index);
-
-			Chain * previous_link = find_previous_similar(aligned_offset, index);
 
 			// Add the chain link into the correct bin:
 			bin.links.push_back({aligned_offset, offset, nullptr});
 
-			// Add the chain into the list of all chains if it is a new chain:
-			if (previous_link != nullptr) {
-				previous_link->next = &bin.links.back();
-			} else {
-				_chains.push_back(&bin.links.back());
+			if (0) {
+				Chain * previous_link = find_previous_similar(aligned_offset, index);
+
+				// Add the chain into the list of all chains if it is a new chain:
+				if (previous_link != nullptr) {
+					previous_link->next = &bin.links.back();
+				} else {
+					_chains.push_back(&bin.links.back());
+				}
 			}
 
 			//print_table(std::cout);
@@ -161,12 +187,19 @@ namespace TransformFlow {
 		return distribution;
 	}
 
-	Average<RealT> FeatureTable::calculate_offset(const FeatureTable & other) const
+	Average<RealT> FeatureTable::calculate_offset(const FeatureTable & other, int estimate) const
 	{
 		// No bins -> no data, cannot align.
 		if (_bins.size() == 0 || other.bins().size() == 0)
 			return {};
 
-		return align_tables(*this, other);
+		assert(this->_pixels_per_bin == other._pixels_per_bin);
+
+		// Convert pixel estimate to bin estimate:
+		if (estimate != 0) {
+			estimate /= _pixels_per_bin;
+		}
+
+		return align_tables(*this, other, estimate);
 	}
 };

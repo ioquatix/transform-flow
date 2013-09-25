@@ -76,8 +76,6 @@ namespace TransformFlow
 			
 			// This is a transform matrix from one image to the other. We want to find the component perpendicular to gravity.
 			auto transform = _matching_algorithm->calculate_local_transform(_image_update, image_update);
-
-			
 		}
 
 		_previous_bearing = _bearing;

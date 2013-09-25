@@ -42,6 +42,8 @@ namespace TransformFlow
 		Mat33 _transform;
 		AlignedBox2 _bounds;
 
+		RealT _pixels_per_bin;
+
 		std::vector<Chain *> _chains;
 		std::vector<Bin> _bins;
 
@@ -50,15 +52,19 @@ namespace TransformFlow
 		Chain * find_previous_similar(Vec2 offset, std::size_t index);
 
 	public:
-		FeatureTable(std::size_t bins, const AlignedBox2 & bounds, const Radians<> & rotation);
+		FeatureTable(RealT pixels_per_bin, const AlignedBox2 & bounds, const Radians<> & rotation);
 
 		void update(const std::vector<Vec2> & offsets);
+
+		std::size_t bin_index_for_offset(RealT x);
 
 		const std::vector<Chain *> & chains() const { return _chains; }
 		const std::vector<Bin> & bins() const { return _bins; }
 		
 		Average<RealT> average_chain_position(std::size_t bin) const;
-		Average<RealT> calculate_offset(const FeatureTable & other) const;
+
+		// The estimate is in pixels, the default is usually sufficient.
+		Average<RealT> calculate_offset(const FeatureTable & other, int estimate = 0) const;
 	};
 }
 
