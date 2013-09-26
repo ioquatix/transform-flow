@@ -58,14 +58,14 @@ namespace TransformFlow
 		}
 	};
 
-	float error_bias(std::size_t difference)
+	static float error_bias(std::size_t difference)
 	{
 		// std::powf(offset - estimate, bias);
 		return (difference * difference) / 2.0;
 	}
 
 	template <typename SequenceT>
-	Cost calculate_alignment_cost(const SequenceT & u, const SequenceT & v, int offset, int estimate, float best_error)
+	static Cost calculate_alignment_cost(const SequenceT & u, const SequenceT & v, int offset, int estimate, float best_error)
 	{
 		Cost cost = {offset};
 
