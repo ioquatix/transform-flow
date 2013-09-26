@@ -61,9 +61,7 @@ namespace TransformFlow {
 	{
 		static NumericT laplace(const NumericT values[H], const std::size_t offset)
 		{
-			//std::cerr << "Laplace @ " << offset << std::endl;
 			auto mid = (((H-1)/2 + offset) % H);
-			//std::cerr << "[] = " << mid << std::endl;
 			NumericT sum = values[mid] * (H-1);
 
 			// Subtractions and modulus don't work as you'd expect..
@@ -71,10 +69,7 @@ namespace TransformFlow {
 
 			for (std::size_t i = 1; i <= (H-1)/2; i += 1)
 			{
-				//std::cerr << "[] = " << ((mid-i) % H) << std::endl;
 				sum += values[(mid-i) % H] * -1;
-
-				//std::cerr << "[] = " << ((mid+i) % H) << std::endl;
 				sum += values[(mid+i) % H] * -1;
 			}
 
@@ -141,6 +136,12 @@ namespace TransformFlow {
 			gradients.sum(intensity, [&](std::size_t index) {
 				auto & a = gradients.output[0];
 				auto & b = gradients.output[1]; // index
+
+				auto & ia = gradients.input[(index-2) % 5];
+				auto & ib = gradients.input[index % 5];
+				auto d = (ib - ia);
+				
+				if (d*d < 100) return;
 
 				if (a != 0 && b == 0)
 				{
