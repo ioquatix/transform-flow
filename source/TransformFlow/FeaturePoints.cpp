@@ -118,12 +118,13 @@ namespace TransformFlow {
 
 		AlignedBox2 image_box = AlignedBox2::from_origin_and_size(ZERO, image->size());
 
+		const std::size_t H = 5;
 		typedef Vector<3, unsigned char> PixelT;
-		LaplacianGradients<RealT, 5> gradients;
+		LaplacianGradients<RealT, H> gradients;
 		
 		auto image_reader = reader(*image);
 
-		Vec2 offsets[5];
+		Vec2 offsets[H];
 
 		bresenham_normalized_line(start, end, [&](const Vec2i & offset) {
 			assert(offset.greater_than_or_equal({0, 0}));
@@ -137,23 +138,23 @@ namespace TransformFlow {
 				auto & a = gradients.output[0];
 				auto & b = gradients.output[1]; // index
 
-				auto & ia = gradients.input[(index-2) % 5];
-				auto & ib = gradients.input[index % 5];
+				auto & ia = gradients.input[(index-2) % H];
+				auto & ib = gradients.input[index % H];
 				auto d = (ib - ia);
 				
-				if (d*d < 100) return;
+				if (d*d < 1000) return;
 
 				if (a != 0 && b == 0)
 				{
-					assert(image_box.intersects_with(offsets[index % 5]));
+					assert(image_box.intersects_with(offsets[index % H]));
 					
 					// Zero crossing at index (very rare).
-					features.push_back(offsets[index % 5]);
+					features.push_back(offsets[index % H]);
 				}
 				else if ((a < 0 && b > 0) || (b < 0 && a > 0))
 				{
 					// Midpoint between index-1 and index.
-					auto m = linear_interpolate<RealT>(midpoint(a, b), offsets[(index-1) % 5], offsets[index % 5]);
+					auto m = linear_interpolate<RealT>(midpoint(a, b), offsets[(index-1) % H], offsets[index % H]);
 					
 					assert(image_box.intersects_with(m));
 					
