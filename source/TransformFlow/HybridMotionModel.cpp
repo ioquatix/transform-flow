@@ -50,7 +50,7 @@ namespace TransformFlow
 				RealT image_bearing_offset = R2D * image_update.angle_of(offset.value());
 				RealT sensor_bearing_offset = _bearing - _previous_bearing;
 
-				note << "Hybrid update. Image: " << image_bearing_offset << " Gyroscope: " << sensor_bearing_offset << std::endl;
+				note << "Hybrid update (confidence = " << offset.number_of_samples() << "). Image: " << image_bearing_offset << " Gyroscope: " << sensor_bearing_offset << std::endl;
 
 				//log_debug("bearing offset", bearing_offset, "actual offset", (_bearing - _previous_bearing));
 
@@ -61,7 +61,7 @@ namespace TransformFlow
 				// If you enable this, you can compute only bearing changes by the image processing algorithm.
 				//_bearing = _previous_bearing;
 
-				note << "Sensor update. Gyroscope: " << (_bearing - _previous_bearing) << std::endl;
+				note << "Sensor update (confidence = " << offset.number_of_samples() << "). Gyroscope: " << (_bearing - _previous_bearing) << std::endl;
 			}
 
 			image_update.add_note(note.str());

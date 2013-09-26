@@ -39,7 +39,7 @@ namespace TransformFlow {
 		
 		Ref<Image> _source;
 		
-		static void features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features);
+		static void features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, const unsigned estimate, std::vector<Vec2> & features);
 
 		std::vector<LineSegment2> _segments;
 		AlignedBox2 _bounding_box;
@@ -48,8 +48,8 @@ namespace TransformFlow {
 		FeaturePoints();
 		virtual ~FeaturePoints();
 
-		// dy is the distance between scanlines.
-		void scan(Ptr<Image> source, const Radians<> & gravity_rotation, std::size_t dy = 15);
+		// dy is the distance between scanlines. estimate is the size of the expected motion blur.
+		void scan(Ptr<Image> source, const Radians<> & gravity_rotation, RealT estimate = 1, std::size_t dy = 15);
 
 		Ref<FeatureTable> table() { return _table; }
 

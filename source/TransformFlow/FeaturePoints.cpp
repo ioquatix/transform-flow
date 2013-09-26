@@ -15,12 +15,8 @@ namespace TransformFlow {
 	using namespace Dream::Events::Logging;
 	using namespace Euclid::Geometry;
 
-	// Bresenham's Line Drawing Algorithm
-	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
-		// We want the algorithm to work with the origin in the bottom left, not the top left.
-		start[Y] = (int)image->size()[HEIGHT] - start[Y];
-		end[Y] = (int)image->size()[HEIGHT] - end[Y];
-
+	static void bresenham_normalized_line(Vec2i start, Vec2i end, const std::function<void(const Vec2i & offset)> & callback)
+	{
 		bool steep = abs(end[Y] - start[Y]) > abs(end[X] - start[X]);
 		
 		if (steep) {
@@ -43,54 +39,12 @@ namespace TransformFlow {
 		if (start[Y] < end[Y])
 			ystep = 1;
 		
-		Vec2i offset[2];
-		Vector<3, unsigned char> pixel[2];
-		unsigned count = 0, skip = 0;
-		//std::size_t maximum_error = (255 * 255) * 3;
-		
-		unsigned step = std::max<unsigned>((end - start).length() / 100, 1);
-
-		auto image_reader = reader(*image);
-		//auto image_writer = writer(*image);
-
 		for (int x = start[X]; x < end[X]; x += 1) {
 			if (steep) {
-				offset[0] = vector(y, x);
+				callback({y, x});
 			} else {
-				offset[0] = vector(x, y);
+				callback({x, y});
 			}
-
-			assert(offset[0].greater_than_or_equal({0, 0}));
-			assert(offset[0].less_than(image->size()));
-
-			pixel[0] = image_reader[offset[0]];
-			//image->read_pixel(offset[0] << 0, pixel[0]);
-			if (count > 0 && skip == 0) {
-				// Calculate the distance between the two pixels:
-				RealT distance = 0;
-				
-				for (std::size_t i = 0; i < 3; i += 1) {
-					int d = (int)pixel[1][i] - (int)pixel[0][i];
-					distance += (d*d);
-				}
-				
-				//logger()->log(LOG_DEBUG, LogBuffer() << "Pixel[0] = " << pixel[0] << " Pixel[1] = " << pixel[1] << " Distance = " << distance);
-				
-				if (distance > 4000) {
-					Vec2 middle = offset[0] + offset[1];
-					middle /= 2.0;
-					//Vec2 middle = offset[1];
-					
-					middle[Y] = image->size()[HEIGHT] - (middle[Y] + 1);
-					middle += 0.5;
-					features.push_back(middle);
-
-					skip = step;
-				}
-			}
-			
-			if (skip)
-				skip -= 1;
 			
 			// Calculate the next step
 			error = error - dy;
@@ -99,13 +53,113 @@ namespace TransformFlow {
 				y = y + ystep;
 				error = error + dx;
 			}
-			
-			count += 1;
-			offset[1] = offset[0];
-			pixel[1] = pixel[0];
-
-			//image_writer.set(offset[0], Vector<3, ByteT>{0, 255, 0});
 		}
+	}
+
+	template <typename NumericT, std::size_t H = 5>
+	struct LaplacianGradients
+	{
+		static NumericT laplace(const NumericT values[H], const std::size_t offset)
+		{
+			//std::cerr << "Laplace @ " << offset << std::endl;
+			auto mid = (((H-1)/2 + offset) % H);
+			//std::cerr << "[] = " << mid << std::endl;
+			NumericT sum = values[mid] * (H-1);
+
+			// Subtractions and modulus don't work as you'd expect..
+			mid = mid + H;
+
+			for (std::size_t i = 1; i <= (H-1)/2; i += 1)
+			{
+				//std::cerr << "[] = " << ((mid-i) % H) << std::endl;
+				sum += values[(mid-i) % H] * -1;
+
+				//std::cerr << "[] = " << ((mid+i) % H) << std::endl;
+				sum += values[(mid+i) % H] * -1;
+			}
+
+			return sum;
+		}
+
+		NumericT input[H];
+		std::size_t k = 0;
+
+		NumericT output[2];
+
+		void sum(const NumericT & value, const std::function<void(std::size_t index)> & callback) {
+			input[k % H] = value;
+
+			if (k >= (H-1)) {
+				// Latest measurement is stored in output[1], previous measurement stored in output[0].
+				output[1] = laplace(input, (k - (H-1)) % H);
+
+				if (k >= H) {
+					callback(k - (H-1)/2);
+				}
+
+				output[0] = output[1];
+			}
+
+			k += 1;
+		}
+		
+		std::size_t index() const
+		{
+			return k % H;
+		}
+	};
+
+	template <typename NumericT>
+	NumericT midpoint(const NumericT & a, const NumericT b)
+	{
+		return -a / (b-a);
+	}
+
+	// Bresenham's Line Drawing Algorithm
+	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, const unsigned estimate, std::vector<Vec2> & features) {
+		// We want the algorithm to work with the origin in the bottom left, not the top left.
+		start[Y] = (int)image->size()[HEIGHT] - start[Y];
+		end[Y] = (int)image->size()[HEIGHT] - end[Y];
+
+		AlignedBox2 image_box = AlignedBox2::from_origin_and_size(ZERO, image->size());
+
+		typedef Vector<3, unsigned char> PixelT;
+		LaplacianGradients<RealT, 5> gradients;
+		
+		auto image_reader = reader(*image);
+
+		Vec2 offsets[5];
+
+		bresenham_normalized_line(start, end, [&](const Vec2i & offset) {
+			assert(offset.greater_than_or_equal({0, 0}));
+			assert(offset.less_than(image->size()));
+			
+			RealT intensity = Vec3(PixelT(image_reader[offset])).sum() / 3;
+			
+			offsets[gradients.index()] = offset;
+			
+			gradients.sum(intensity, [&](std::size_t index) {
+				auto & a = gradients.output[0];
+				auto & b = gradients.output[1]; // index
+
+				if (a != 0 && b == 0)
+				{
+					assert(image_box.intersects_with(offsets[index % 5]));
+					
+					// Zero crossing at index (very rare).
+					features.push_back(offsets[index % 5]);
+				}
+				else if ((a < 0 && b > 0) || (b < 0 && a > 0))
+				{
+					// Midpoint between index-1 and index.
+					auto m = linear_interpolate<RealT>(midpoint(a, b), offsets[(index-1) % 5], offsets[index % 5]);
+					
+					assert(image_box.intersects_with(m));
+					
+					features.push_back(m);
+				}
+			});
+		});
 	}
 	
 	FeaturePoints::FeaturePoints() {
@@ -116,7 +170,7 @@ namespace TransformFlow {
 		
 	}
 
-	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt, std::size_t dy)
+	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt, RealT estimate, std::size_t dy)
 	{
 		if (_offsets.size()) return;
 		
@@ -165,12 +219,12 @@ namespace TransformFlow {
 					Vec2 start = clipped_segment.start();
 					Vec2 end = clipped_segment.end();
 
-					features_along_line(source, start, end, _offsets);
+					features_along_line(source, start, end, estimate, _offsets);
 				}
 			}
 		}
 
-		_table = new FeatureTable(2, image_box, tilt);
+		_table = new FeatureTable(1, image_box, tilt);
 
 		_table->update(_offsets);
 

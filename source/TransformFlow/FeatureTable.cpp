@@ -8,7 +8,7 @@
 
 #include "FeatureTable.h"
 #include "FeaturePoints.h"
-#include "Alignment.h"
+#include "FastAlignment.h"
 
 #include <Euclid/Numerics/Average.h>
 #include <Euclid/Numerics/Interpolate.h>

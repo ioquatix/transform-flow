@@ -10,7 +10,6 @@
 #define __Transform_Flow__FeatureTable__
 
 #include <Dream/Class.h>
-#include "FeaturePoint.h"
 
 #include <Euclid/Geometry/AlignedBox.h>
 #include <Euclid/Numerics/Average.h>

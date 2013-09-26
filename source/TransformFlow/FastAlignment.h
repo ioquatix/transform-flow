@@ -1,25 +1,24 @@
 //
-//  FastAlignment.h
-//  File file is part of the "Transform Flow" project and released under the MIT License.
+//  Alignment.h
+//  IntegerArrayAlignment
 //
-//  Created by Samuel Williams on 12/8/2013.
-//  Copyright, 2013, by Samuel Williams. All rights reserved.
+//  Created by Samuel Williams on 20/09/13.
+//  Copyright (c) 2013 Orion Transfer. All rights reserved.
 //
 
-#ifndef TRANSFORMFLOW_FASTALIGNMENT_H
-#define TRANSFORMFLOW_FASTALIGNMENT_H
+#ifndef __IntegerArrayAlignment__Alignment__
+#define __IntegerArrayAlignment__Alignment__
+
+#include "FeatureTable.h"
+
+#include <Euclid/Numerics/Average.h>
 
 namespace TransformFlow
 {
-	class FastAlignment
-	{
-	public:
-		FastAlignment();
-		virtual ~FastAlignment();
-		
-	private:
-		
-	};
+	using namespace Euclid::Numerics;
+	using namespace TransformFlow;
+
+	Average<RealT> align_tables(const FeatureTable & a, const FeatureTable & b, int estimate = 0);
 }
 
-#endif
+#endif /* defined(__IntegerArrayAlignment__Alignment__) */
