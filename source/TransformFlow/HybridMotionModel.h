@@ -22,9 +22,16 @@ namespace TransformFlow
 
 		virtual void update(const ImageUpdate & image_update);
 
+		virtual Radians<> bearing() const;
+
 	private:
+		RealT _corrected_bearing;
+		
 		// Measured in degrees from north:
 		RealT _previous_bearing;
+		
+		Radians<> _previous_relative_rotation;
+		
 		Ref<FeaturePoints> _previous_feature_points;
 	};
 }
