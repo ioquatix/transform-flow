@@ -118,7 +118,7 @@ namespace TransformFlow {
 
 		AlignedBox2 image_box = AlignedBox2::from_origin_and_size(ZERO, image->size());
 
-		const std::size_t H = 7;
+		const std::size_t H = 5;
 		typedef Vector<3, unsigned char> PixelT;
 		LaplacianGradients<RealT, H> gradients;
 		
