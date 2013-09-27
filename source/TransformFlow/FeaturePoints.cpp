@@ -118,7 +118,7 @@ namespace TransformFlow {
 
 		AlignedBox2 image_box = AlignedBox2::from_origin_and_size(ZERO, image->size());
 
-		const std::size_t H = 5;
+		const std::size_t H = 7;
 		typedef Vector<3, unsigned char> PixelT;
 		LaplacianGradients<RealT, H> gradients;
 		
@@ -132,7 +132,10 @@ namespace TransformFlow {
 			
 			RealT intensity = Vec3(PixelT(image_reader[offset])).sum() / 3;
 			
-			offsets[gradients.index()] = offset;
+			Vec2 image_offset = offset;
+			image_offset[Y] = image->size()[HEIGHT] - image_offset[Y];
+			
+			offsets[gradients.index()] = image_offset;
 			
 			gradients.sum(intensity, [&](std::size_t index) {
 				auto & a = gradients.output[0];
@@ -140,9 +143,11 @@ namespace TransformFlow {
 
 				auto & ia = gradients.input[(index-2) % H];
 				auto & ib = gradients.input[index % H];
-				auto d = (ib - ia);
+				auto & ic = gradients.input[(index+2) % H];
+				auto dab = (ib - ia), dbc = (ic - ib);
+				auto d = (dab*dab) + (dbc*dbc);
 				
-				if (d*d < 1000) return;
+				if (d < 800) return;
 
 				if (a != 0 && b == 0)
 				{
