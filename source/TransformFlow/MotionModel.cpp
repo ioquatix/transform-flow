@@ -198,10 +198,6 @@ namespace TransformFlow
 		}
 	}
 
-	MotionModel::MotionModel() : _gravity(0), _position(0), _bearing(-1)
-	{
-	}
-
 	MotionModel::~MotionModel()
 	{
 	}

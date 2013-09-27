@@ -102,14 +102,7 @@ namespace TransformFlow
 	/// A basic motion model interface. The output is gravity, bearing (rotation about gravity from north axis) and position.
 	class MotionModel : public Object
 	{
-		protected:
-			Vec3 _gravity, _position;
-
-			/// Measured in degrees from north.
-			RealT _bearing;
-
 		public:
-			MotionModel();
 			virtual ~MotionModel();
 
 			void update(SensorUpdate * sensor_update);
@@ -124,9 +117,9 @@ namespace TransformFlow
 			// Returns whether the motion model is valid for tracking.
 			virtual bool localization_valid() const;
 
-			const Vec3 & gravity() const { return _gravity; }
-			const Vec3 & position() const { return _position; }
-			Radians<> bearing() const { return degrees(_bearing); }
+			virtual const Vec3 & gravity() const = 0;
+			virtual const Vec3 & position() const = 0;
+			virtual Radians<> bearing() const = 0;
 	};
 }
 

@@ -8,8 +8,12 @@
 
 #include "BasicSensorMotionModel.h"
 
+#include <Dream/Events/Logger.h>
+
 namespace TransformFlow
 {
+	using namespace Dream::Events::Logging;
+	
 	double interpolateAnglesRadians(double a, double b, double blend)
 	{
 		double ix = sin(a), iy = cos(a);
@@ -23,7 +27,7 @@ namespace TransformFlow
 		return interpolateAnglesRadians(a * D2R, b * D2R, blend) * R2D;
 	}
 
-	BasicSensorMotionModel::BasicSensorMotionModel() : _heading_primed(false), _motion_primed(false), _best_horizontal_accuracy(100)
+	BasicSensorMotionModel::BasicSensorMotionModel() : _gravity(0), _position(0), _bearing(0), _heading_primed(false), _motion_primed(false), _best_horizontal_accuracy(100), _relative_rotation(0)
 	{
 	}
 
@@ -66,10 +70,13 @@ namespace TransformFlow
 			// Calculate the rotation around gravity, rotation rate is in radians/second
 			auto rotation = motion_update.rotation_rate * dt;
 
-			auto rotation_about_gravity = _gravity.dot(rotation) * R2D;
+			auto rotation_about_gravity = _gravity.dot(rotation);
+
+			// Relative rotation by the gyroscope is saved in radians:
+			_relative_rotation += radians(rotation_about_gravity);
 
 			if (_heading_primed) {
-				_bearing = interpolateAnglesDegrees(_bearing + rotation_about_gravity, _heading_update.true_bearing, 0.01);
+				_bearing = interpolateAnglesDegrees(_bearing + (rotation_about_gravity * R2D), _heading_update.true_bearing, 0.1);
 			}
 		} else {
 			_motion_primed = true;
@@ -80,5 +87,20 @@ namespace TransformFlow
 
 	void BasicSensorMotionModel::update(const ImageUpdate & image_update)
 	{
+	}
+	
+	const Vec3 & BasicSensorMotionModel::gravity() const
+	{
+		return _gravity;
+	}
+	
+	const Vec3 & BasicSensorMotionModel::position() const
+	{
+		return _position;
+	}
+	
+	Radians<> BasicSensorMotionModel::bearing() const
+	{
+		return degrees(_bearing);
 	}
 }

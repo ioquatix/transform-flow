@@ -20,11 +20,18 @@ namespace TransformFlow
 	class BasicSensorMotionModel : public MotionModel
 	{
 		protected:
+			Vec3 _gravity, _position;
+
+			/// Measured in degrees from north.
+			RealT _bearing;
+			
 			bool _heading_primed;
 			HeadingUpdate _heading_update;
 
 			bool _motion_primed;
 			MotionUpdate _motion_update;
+
+			Radians<> _relative_rotation;
 
 			RealT _best_horizontal_accuracy;
 
@@ -36,6 +43,10 @@ namespace TransformFlow
 			virtual void update(const HeadingUpdate & heading_update);
 			virtual void update(const MotionUpdate & motion_update);
 			virtual void update(const ImageUpdate & image_update);
+			
+			virtual const Vec3 & gravity() const;
+			virtual const Vec3 & position() const;
+			virtual Radians<> bearing() const;
 	};
 }
 
