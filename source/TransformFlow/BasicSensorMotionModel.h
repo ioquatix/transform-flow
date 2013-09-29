@@ -23,7 +23,7 @@ namespace TransformFlow
 			Vec3 _gravity, _position;
 
 			/// Measured in degrees from north.
-			RealT _bearing;
+			RealT _bearing, _normalized_bearing;
 			
 			bool _heading_primed;
 			HeadingUpdate _heading_update;

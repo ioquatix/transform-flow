@@ -48,13 +48,23 @@ namespace TransformFlow
 		}
 	}
 
+	// This function reprojects the rotation of device north onto the camera axis.
+	RealT normalized_bearing(RealT bearing, const Vec3 & device_north, const Vec3 & gravity, const Vec3 & camera_axis)
+	{
+		return bearing;
+	}
+
 	void BasicSensorMotionModel::update(const HeadingUpdate & heading_update)
 	{
+		// We compute the bearing around -Z axis. The bearing is the angle between "north" and "device north". For most phones I've worked with, "device north" is <0, 1, 0>. However, this isn't usually pointing down the camera axis <0, 0, -1> which causes problems for rotations around that axis. We fix this by computing the rotation of the -Z axis.
+		
+		_normalized_bearing = normalized_bearing(heading_update.true_bearing, heading_update.device_north, _gravity, _camera_axis);
+		
 		if (_heading_primed == false)
 		{
 			_heading_primed = true;
 
-			_bearing = heading_update.true_bearing;
+			_bearing = _normalized_bearing;
 		}
 		
 		_heading_update = heading_update;
@@ -76,7 +86,7 @@ namespace TransformFlow
 			_relative_rotation += radians(rotation_about_gravity);
 
 			if (_heading_primed) {
-				_bearing = interpolateAnglesDegrees(_bearing + (rotation_about_gravity * R2D), _heading_update.true_bearing, 0.1);
+				_bearing = interpolateAnglesDegrees(_bearing + (rotation_about_gravity * R2D), _normalized_bearing, 0.1);
 			}
 		} else {
 			_motion_primed = true;

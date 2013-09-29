@@ -48,8 +48,12 @@ namespace TransformFlow
 	};
 
 	struct HeadingUpdate : public SensorUpdate {
+		HeadingUpdate();
 		virtual ~HeadingUpdate();
 		virtual void apply(MotionModel * model);
+
+		// The axis which if that axis was pointing north, the true bearing would be 0. Defaults to <0, 1, 0>.
+		Vec3 device_north;
 
 		double magnetic_bearing, true_bearing;
 	};
@@ -102,7 +106,11 @@ namespace TransformFlow
 	/// A basic motion model interface. The output is gravity, bearing (rotation about gravity from north axis) and position.
 	class MotionModel : public Object
 	{
+		protected:
+			Vec3 _camera_axis;
+		
 		public:
+			MotionModel();
 			virtual ~MotionModel();
 
 			void update(SensorUpdate * sensor_update);

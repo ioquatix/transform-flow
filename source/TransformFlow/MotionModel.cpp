@@ -28,6 +28,12 @@ namespace TransformFlow
 		model->update(*this);
 	}
 
+	HeadingUpdate::HeadingUpdate()
+	{
+		// This seems to be the default for iPhone bearing calculations:
+		device_north = Vec3(0, 1, 0).normalize();
+	}
+
 	HeadingUpdate::~HeadingUpdate()
 	{
 	}
@@ -196,6 +202,11 @@ namespace TransformFlow
 				//logger()->log(LOG_WARN, LogBuffer() << "Unexpected line: " << line);
 			}
 		}
+	}
+
+	MotionModel::MotionModel() : _camera_axis(0, 0, -1)
+	{
+		
 	}
 
 	MotionModel::~MotionModel()
