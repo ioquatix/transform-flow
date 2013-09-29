@@ -40,9 +40,15 @@ namespace TransformFlow {
 				VideoFrame video_frame;
 
 				video_frame.image_update = image_update;
-				video_frame.gravity = _motion_model->gravity();
+				video_frame.gravity = _motion_model->gravity().normalize();
 				video_frame.bearing = _motion_model->bearing();
 				video_frame.tilt = _motion_model->tilt();
+
+				// Global coordinate system:
+				Vec3 down(0, -1, 0), north(0, 0, -1);
+				
+				Vec3 heading = Quat(rotate(video_frame.bearing, down)) * north;
+				video_frame.heading = heading.normalize();
 
 				video_frame.calculate_feature_points();
 
