@@ -27,7 +27,7 @@ namespace TransformFlow
 		return interpolateAnglesRadians(a * D2R, b * D2R, blend) * R2D;
 	}
 
-	BasicSensorMotionModel::BasicSensorMotionModel() : _gravity(0), _position(0), _bearing(0), _heading_primed(false), _motion_primed(false), _best_horizontal_accuracy(100), _relative_rotation(0)
+	BasicSensorMotionModel::BasicSensorMotionModel() : _gravity(0), _position(0), _bearing(0), _heading_primed(false), _motion_primed(false), _relative_rotation(0), _best_horizontal_accuracy(100)
 	{
 	}
 
@@ -49,14 +49,48 @@ namespace TransformFlow
 	}
 
 	// This function reprojects the rotation of device north onto the camera axis.
-	RealT normalized_bearing(RealT bearing, const Vec3 & device_north, const Vec3 & gravity, const Vec3 & camera_axis)
+	static RealT normalized_bearing(RealT bearing, const Vec3 & device_north, const Vec3 & gravity, const Vec3 & camera_axis)
 	{
-		return bearing;
+		//return bearing;
+		
+		Vec3 f = gravity.normalize();
+		Vec3 down(0, 0, -1); // When the camera is pointing down, what is the device axis of the camera?
+
+		float sz = acos(down.dot(f));
+	
+		Quat q = IDENTITY;
+	
+		if (sz > 0.01) {
+			Vec3 s = cross_product(down, f);
+
+			q *= (Quat)rotate(radians(sz), s);
+		}
+
+		q *= (Quat)rotate<Z>(degrees(bearing));
+		
+		// q is a coordinate frame which rotates from device coordinate space to world coordinate space such that +Y points north. We need to find the bearing of the camera axis relative to north.
+		
+		// Let's rotate the device camera axis into this coordinate frame:
+		Vec3 global_camera_axis = q.conjugate() * camera_axis;
+		
+		// global_camera_axis is now in a coordinate frame where +Y is north, +X is east, -Z is down, and so on. We compute the bearing by projecting global_camera_axis onto the plane XY and looking at the rotation from +Y (north):
+		
+		global_camera_axis[Z] = 0;
+		global_camera_axis = global_camera_axis.normalize();
+		
+		Quat r = rotate(Vec3{0, 1, 0}, global_camera_axis, Vec3{0, 0, 1});
+		
+		log_debug("global_camera_axis", global_camera_axis, "r", r, "bearing", (r.angle() * r.axis().dot({0, 0, 1})) * R2D);
+		
+		return (r.angle() * r.axis().dot({0, 0, 1})) * R2D;
 	}
 
 	void BasicSensorMotionModel::update(const HeadingUpdate & heading_update)
 	{
 		// We compute the bearing around -Z axis. The bearing is the angle between "north" and "device north". For most phones I've worked with, "device north" is <0, 1, 0>. However, this isn't usually pointing down the camera axis <0, 0, -1> which causes problems for rotations around that axis. We fix this by computing the rotation of the -Z axis.
+		
+		// This could probably be improved, but at the very least we need gravity before initialising this:
+		if (!_motion_primed) return;
 		
 		_normalized_bearing = normalized_bearing(heading_update.true_bearing, heading_update.device_north, _gravity, _camera_axis);
 		
