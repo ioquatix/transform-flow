@@ -147,7 +147,7 @@ namespace TransformFlow {
 				auto dab = (ib - ia), dbc = (ic - ib);
 				auto d = (dab*dab) + (dbc*dbc);
 				
-				if (d < 800) return;
+				if (d < 1500) return;
 
 				if (a != 0 && b == 0)
 				{
