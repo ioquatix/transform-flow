@@ -114,7 +114,7 @@ namespace TransformFlow
 	
 	void SensorData::parse_log()
 	{
-		Ref<IData> data = _loader->data_for_resource("log.txt");
+		Ref<IData> data = _loader->data_for_resource("log");
 		Shared<std::istream> stream = data->input_stream();
 		
 		std::string line;
