@@ -265,7 +265,8 @@ namespace TransformFlow
 			//NSLog(@"qx=%0.3f qz=%0.3f b=%0.3f", R2D * (float)qx.angle(), R2D * (float)qz.angle(), origin.rotation);
 
 			Quat q = rotate<Y>(-bearing) << qx << qz;
-			q = q.conjugate();
+
+			q = q.conjugate().normalize();
 
 			return q << rotate<X>(-R90);
 		}
