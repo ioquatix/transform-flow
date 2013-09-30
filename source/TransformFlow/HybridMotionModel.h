@@ -24,7 +24,9 @@ namespace TransformFlow
 
 		virtual Radians<> bearing() const;
 
-	private:
+	protected:
+		bool _corrected_bearing_primed;
+		
 		RealT _corrected_bearing;
 		
 		// Measured in degrees from north:

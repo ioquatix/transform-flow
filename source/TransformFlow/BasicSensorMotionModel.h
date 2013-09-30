@@ -22,22 +22,31 @@ namespace TransformFlow
 		protected:
 			Vec3 _gravity, _position;
 
-			/// Measured in degrees from north.
+			// Measured in degrees from north, the _bearing is a fusion between the compass and the gyro, while _normalized_bearing is computed purely from the compass and represents the bearing relative to the _camera_axis.
 			RealT _bearing, _normalized_bearing;
-			
-			bool _heading_primed;
+
+			// State relating to heading updates:
+			bool _heading_primed, _bearing_primed;
 			HeadingUpdate _heading_update;
 
+			// State relating to gyro/motion updates:
 			bool _motion_primed;
 			MotionUpdate _motion_update;
 
+			// The relative rotation as measured from motion update to motion update.
 			Radians<> _relative_rotation;
 
+			// Used for tracking the quality of position updates:
 			RealT _best_horizontal_accuracy;
+
+			// This function computes the normalized bearing from the current heading and motion updates:
+			void normalize_bearing();
 
 		public:
 			BasicSensorMotionModel();
 			virtual ~BasicSensorMotionModel();
+
+			virtual bool localization_valid() const;
 
 			virtual void update(const LocationUpdate & location_update);
 			virtual void update(const HeadingUpdate & heading_update);

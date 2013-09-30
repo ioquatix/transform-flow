@@ -27,7 +27,7 @@ namespace TransformFlow
 		return interpolateAnglesRadians(a * D2R, b * D2R, blend) * R2D;
 	}
 
-	BasicSensorMotionModel::BasicSensorMotionModel() : _gravity(0), _position(0), _bearing(0), _heading_primed(false), _motion_primed(false), _relative_rotation(0), _best_horizontal_accuracy(100)
+	BasicSensorMotionModel::BasicSensorMotionModel() : _gravity(0), _position(0), _bearing(0), _heading_primed(false), _bearing_primed(false), _motion_primed(false), _relative_rotation(0), _best_horizontal_accuracy(100)
 	{
 	}
 
@@ -80,28 +80,39 @@ namespace TransformFlow
 		
 		Quat r = rotate(Vec3{0, 1, 0}, global_camera_axis, Vec3{0, 0, 1});
 		
-		log_debug("global_camera_axis", global_camera_axis, "r", r, "bearing", (r.angle() * r.axis().dot({0, 0, 1})) * R2D);
+		//log_debug("global_camera_axis", global_camera_axis, "r", r, "bearing", (r.angle() * r.axis().dot({0, 0, 1})) * R2D);
 		
-		return (r.angle() * r.axis().dot({0, 0, 1})) * R2D;
+		return (r.angle() * r.axis().dot({0, 0, -1})) * R2D;
+	}
+
+	void BasicSensorMotionModel::normalize_bearing()
+	{
+		// Require heading and gravity:
+		if (!_heading_primed || !_motion_primed) return;
+
+		//log_debug("heading @", _heading_update.time_offset, "motion @", _motion_update.time_offset);
+
+		// We compute the bearing around -Z axis. The bearing is the angle between "north" and "device north". For most phones I've worked with, "device north" is <0, 1, 0>. However, this isn't usually pointing down the camera axis <0, 0, -1> which causes problems for rotations around that axis. We fix this by computing the rotation of the -Z axis.
+		_normalized_bearing = normalized_bearing(_heading_update.true_bearing, _heading_update.device_north, _gravity, _camera_axis);
+		
+		//log_debug("normalized_bearing", _normalized_bearing);
+		
+		if (!_bearing_primed) {
+			_bearing = _normalized_bearing;
+			_bearing_primed = true;
+		}
 	}
 
 	void BasicSensorMotionModel::update(const HeadingUpdate & heading_update)
 	{
-		// We compute the bearing around -Z axis. The bearing is the angle between "north" and "device north". For most phones I've worked with, "device north" is <0, 1, 0>. However, this isn't usually pointing down the camera axis <0, 0, -1> which causes problems for rotations around that axis. We fix this by computing the rotation of the -Z axis.
-		
-		// This could probably be improved, but at the very least we need gravity before initialising this:
-		if (!_motion_primed) return;
-		
-		_normalized_bearing = normalized_bearing(heading_update.true_bearing, heading_update.device_north, _gravity, _camera_axis);
-		
 		if (_heading_primed == false)
-		{
 			_heading_primed = true;
-
-			_bearing = _normalized_bearing;
-		}
 		
 		_heading_update = heading_update;
+		
+		// The first time this function is called, it is unlikely we already have a motion update... But if we do, we go here, and for all subsequent updates, we do the processing here.
+		if (_motion_primed)
+			normalize_bearing();
 	}
 
 	void BasicSensorMotionModel::update(const MotionUpdate & motion_update)
@@ -122,15 +133,26 @@ namespace TransformFlow
 			if (_heading_primed) {
 				_bearing = interpolateAnglesDegrees(_bearing + (rotation_about_gravity * R2D), _normalized_bearing, 0.1);
 			}
+			
+			_motion_update = motion_update;
 		} else {
 			_motion_primed = true;
+			_motion_update = motion_update;
+			
+			// If we got a heading update, before getting the motion update, when we get the motion update we want to update the normalized bearing if required.
+			if (_heading_primed)
+				normalize_bearing();
 		}
-		
-		_motion_update = motion_update;
 	}
 
 	void BasicSensorMotionModel::update(const ImageUpdate & image_update)
 	{
+	}
+
+	bool BasicSensorMotionModel::localization_valid() const
+	{
+		// We need to know the heading and motion at least once before the localization becomes valid:
+		return MotionModel::localization_valid() && _heading_primed && _motion_primed;
 	}
 	
 	const Vec3 & BasicSensorMotionModel::gravity() const

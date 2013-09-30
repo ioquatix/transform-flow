@@ -141,13 +141,13 @@ namespace TransformFlow {
 				auto & a = gradients.output[0];
 				auto & b = gradients.output[1]; // index
 
-				auto & ia = gradients.input[(index-2) % H];
+				auto & ia = gradients.input[(index-((H-1) / 2)) % H];
 				auto & ib = gradients.input[index % H];
-				auto & ic = gradients.input[(index+2) % H];
+				auto & ic = gradients.input[(index+((H-1) / 2)) % H];
 				auto dab = (ib - ia), dbc = (ic - ib);
 				auto d = (dab*dab) + (dbc*dbc);
 				
-				if (d < 1500) return;
+				if (d < 1000) return;
 
 				if (a != 0 && b == 0)
 				{

@@ -25,7 +25,7 @@ namespace TransformFlow
 
 	void HybridMotionModel::update(const ImageUpdate & image_update)
 	{
-		if (std::isnan(tilt().value)) return;
+		if (!BasicSensorMotionModel::localization_valid()) return;
 
 		Ref<FeaturePoints> current_feature_points = new FeaturePoints;
 		current_feature_points->scan(image_update.image_buffer, tilt());
@@ -45,7 +45,7 @@ namespace TransformFlow
 			auto offset = previous_table->calculate_offset(*current_table, -estimate);
 
 			// At least 3 vertical edges contributed to this sample:
-			if (offset.number_of_samples() > 3) {
+			if (offset.number_of_samples() >= 3) {
 				// This offset is measured in pixels, so we convert it to degrees and use it to rectify errors in the gyro/compass:
 				RealT image_bearing_offset = R2D * image_update.angle_of(offset.value());
 				
@@ -67,6 +67,8 @@ namespace TransformFlow
 			}
 
 			image_update.add_note(note.str());
+		} else {
+			_corrected_bearing = _bearing;
 		}
 
 		// Used to compute a hybrid update between purely sensor based update, or sensor+image based update:
@@ -83,6 +85,9 @@ namespace TransformFlow
 	
 	Radians<> HybridMotionModel::bearing() const
 	{
-		return degrees(_corrected_bearing);
+		if (_previous_feature_points)
+			return degrees(_corrected_bearing);
+		else
+			return BasicSensorMotionModel::bearing();
 	}
 }
