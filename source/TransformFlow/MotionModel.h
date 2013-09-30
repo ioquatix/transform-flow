@@ -132,6 +132,9 @@ namespace TransformFlow
 	
 	// Compute the rotation from device coordinates to global coordinates, based on the given motion model.
 	Quat local_camera_transform(const Vec3 & gravity, const Radians<> & bearing);
+
+	// Rotates +Y to north, given a gravity vector and a rotation around that gravity vector, assuming when bearing is 0deg, +Y points north.
+	Quat world_rotation(const Vec3 & gravity, Radians<> bearing);
 }
 
 #endif /* defined(__Transform_Flow__MorionModel__) */

@@ -271,4 +271,29 @@ namespace TransformFlow
 			return q << rotate<X>(-R90);
 		}
 	}
+	     
+	Quat world_rotation(const Vec3 & gravity, Radians<> bearing)
+	{
+		Quat q = IDENTITY;
+		
+		// F defines the negative normal for the plain
+		// x -> latitude (horizontal, red marker points east)
+		// y -> longitude (vertical, green marker points north)
+		// z -> altitude (altitude, blue marker points up)
+		Vec3 f = gravity.normalize();
+		Vec3 down(0, 0, -1);
+
+		float sz = acos(down.dot(f));
+	
+		if (sz > 0.01) {
+			Vec3 s = cross_product(down, f);
+
+			q *= (Quat)rotate(radians(sz), s);
+		}
+
+		q *= (Quat)rotate<Z>(bearing);
+
+		return q;
+	}
+	
 }
