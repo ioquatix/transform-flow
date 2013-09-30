@@ -236,4 +236,38 @@ namespace TransformFlow
 		// We want the signed rotation, e.g. from -180deg to 180deg, around {0, 0, 1}.
 		return q.angle() * q.axis().dot({0, 0, 1});
 	}
+	
+	// Return the vector component of u orthogonal to v:
+	static Vec3 project(const Vec3 & u, const Vec3 & v)
+	{
+		return u - (v * (u.dot(v) / v.dot(v)));
+	}
+	
+	Quat local_camera_transform(const Vec3 & gravity, const Radians<> & bearing)
+	{
+		float sz = acos(Vec3(0, 0, -1).dot(gravity));
+		
+		if (sz <= 0.01) {
+			return rotate<Z>(bearing);
+		} else {
+			Vec3 pyz = gravity, pxy = gravity;
+
+			pyz[X] = 0;
+			pxy[Z] = 0;
+
+			// Calculate the rotational components of the gravity vector, so we can decompose into a rotation around Z and a rotation around X. Gravity doesn't cause rotations around Y.
+			Vec3 rz = pxy.normalize();
+			Quat qz = rotate(rz, {0, -1, 0}, {0, 0, 1});
+		
+			Vec3 rx = project(qz * gravity, {1, 0, 0}).normalize();
+			Quat qx = rotate(rx, {0, -1, 0}, {1, 0, 0});
+
+			//NSLog(@"qx=%0.3f qz=%0.3f b=%0.3f", R2D * (float)qx.angle(), R2D * (float)qz.angle(), origin.rotation);
+
+			Quat q = rotate<Y>(-bearing) << qx << qz;
+			q = q.conjugate();
+
+			return q << rotate<X>(-R90);
+		}
+	}
 }

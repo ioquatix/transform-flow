@@ -129,6 +129,9 @@ namespace TransformFlow
 			virtual const Vec3 & position() const = 0;
 			virtual Radians<> bearing() const = 0;
 	};
+	
+	// Compute the rotation from device coordinates to global coordinates, based on the given motion model.
+	Quat local_camera_transform(const Vec3 & gravity, const Radians<> & bearing);
 }
 
 #endif /* defined(__Transform_Flow__MorionModel__) */
