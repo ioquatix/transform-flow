@@ -131,7 +131,7 @@ namespace TransformFlow
 			_relative_rotation += radians(rotation_about_gravity);
 
 			if (_heading_primed) {
-				_bearing = interpolateAnglesDegrees(_bearing + (rotation_about_gravity * R2D), _normalized_bearing, 0.1);
+				_bearing = interpolateAnglesDegrees(_bearing + (rotation_about_gravity * R2D), _normalized_bearing, 0.2);
 			}
 			
 			_motion_update = motion_update;
