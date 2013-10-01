@@ -15,7 +15,10 @@ namespace TransformFlow {
 	using namespace Dream::Events::Logging;
 	using namespace Euclid::Geometry;
 
-	static void bresenham_normalized_line(Vec2i start, Vec2i end, const std::function<void(const Vec2i & offset)> & callback)
+	// TODO: using std::function in tight loops is a bad idea.
+
+	template <typename F> //std::function<void(const Vec2i & offset)>
+	static inline void bresenham_normalized_line(Vec2i start, Vec2i end, F callback)
 	{
 		bool steep = abs(end[Y] - start[Y]) > abs(end[X] - start[X]);
 		
@@ -59,7 +62,7 @@ namespace TransformFlow {
 	template <typename NumericT, std::size_t H = 5>
 	struct LaplacianGradients
 	{
-		static NumericT laplace(const NumericT values[H], const std::size_t offset)
+		inline NumericT laplace(const NumericT values[H], const std::size_t offset)
 		{
 			auto mid = (((H-1)/2 + offset) % H);
 			NumericT sum = values[mid] * (H-1);
@@ -81,7 +84,8 @@ namespace TransformFlow {
 
 		NumericT output[2];
 
-		void sum(const NumericT & value, const std::function<void(std::size_t index)> & callback) {
+		template <typename F>
+		inline void sum(const NumericT & value, F callback) {
 			input[k % H] = value;
 
 			if (k >= (H-1)) {
@@ -103,10 +107,21 @@ namespace TransformFlow {
 			return k % H;
 		}
 		
-		NumericT & at(std::size_t i)
+		NumericT & at(std::size_t i) { return input[i % H]; }
+		const NumericT & at(std::size_t i) const { return input[i % H]; }
+
+		RealT variance(const std::size_t & index) const
 		{
-			return input[i % H];
+			auto ia = (at(index-2) + at(index-1)) / 2.0;
+			auto ib = at(index);
+			auto ic = (at(index+1) + at(index+2)) / 2.0;
+
+			auto dab = (ib - ia), dbc = (ic - ib);
+			auto d = (dab*dab) + (dbc*dbc);
+
+			return d;
 		}
+
 	};
 
 	template <typename NumericT>
@@ -115,13 +130,8 @@ namespace TransformFlow {
 		return -a / (b-a);
 	}
 
-	// Bresenham's Line Drawing Algorithm
-	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, const unsigned estimate, std::vector<Vec2> & features) {
-		// We want the algorithm to work with the origin in the bottom left, not the top left.
-		start[Y] = (int)image->size()[HEIGHT] - start[Y];
-		end[Y] = (int)image->size()[HEIGHT] - end[Y];
-
-		AlignedBox2 image_box = AlignedBox2::from_origin_and_size(ZERO, image->size());
+	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
+		//AlignedBox2 image_box = AlignedBox2::from_origin_and_size(ZERO, image->size());
 
 		const std::size_t H = 5;
 		typedef Vector<3, unsigned char> PixelT;
@@ -132,49 +142,44 @@ namespace TransformFlow {
 		Vec2 offsets[H];
 
 		bresenham_normalized_line(start, end, [&](const Vec2i & offset) {
-			assert(offset.greater_than_or_equal({0, 0}));
-			assert(offset.less_than(image->size()));
+			//assert(offset.greater_than_or_equal({0, 0}));
+			//assert(offset.less_than(image->size()));
 			
 			RealT intensity = Vec3(PixelT(image_reader[offset])).sum() / 3.0;
-			
-			Vec2 image_offset = offset;
-			image_offset[Y] = image->size()[HEIGHT] - image_offset[Y];
-			
-			offsets[gradients.index()] = image_offset;
+			offsets[gradients.index()] = offset;
 			
 			gradients.sum(intensity, [&](std::size_t index) {
 				auto & a = gradients.output[0];
 				auto & b = gradients.output[1]; // index
+				//auto d = (b - a);
 
-				auto ia = (gradients.at(index-2) + gradients.at(index-1)) / 2.0;
-				auto ib = gradients.at(index);
-				auto ic = (gradients.at(index+1) + gradients.at(index+2)) / 2.0;
-				
-				auto dab = (ib - ia), dbc = (ic - ib);
-				auto d = (dab*dab) + (dbc*dbc);
-
-				if (d < 400) return;
+				// Early break out:
+				//if ((d*d) < 100) return;
 
 				if (a != 0 && b == 0)
 				{
-					assert(image_box.intersects_with(offsets[index % H]));
+					if (gradients.variance(index) < 400) return;
+
+					//assert(image_box.intersects_with(offsets[index % H]));
 					
 					// Zero crossing at index (very rare).
 					features.push_back(offsets[index % H]);
 				}
 				else if ((a < 0 && b > 0) || (b < 0 && a > 0))
 				{
+					if (gradients.variance(index) < 400) return;
+
 					// Midpoint between index-1 and index.
 					auto m = linear_interpolate<RealT>(midpoint(a, b), offsets[(index-1) % H], offsets[index % H]);
 					
-					assert(image_box.intersects_with(m));
+					//assert(image_box.intersects_with(m));
 					
 					features.push_back(m);
 				}
 			});
 		});
 	}
-	
+
 	FeaturePoints::FeaturePoints() {
 		
 	}
@@ -183,7 +188,7 @@ namespace TransformFlow {
 		
 	}
 
-	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt, RealT estimate, std::size_t dy)
+	void FeaturePoints::scan(Ptr<Image> source, const Radians<> & tilt, std::size_t dy)
 	{
 		if (_offsets.size()) return;
 		
@@ -232,7 +237,7 @@ namespace TransformFlow {
 					Vec2 start = clipped_segment.start();
 					Vec2 end = clipped_segment.end();
 
-					features_along_line(source, start, end, estimate, _offsets);
+					features_along_line(source, start, end, _offsets);
 				}
 			}
 		}
