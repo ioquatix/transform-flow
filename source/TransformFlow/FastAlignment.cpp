@@ -315,7 +315,7 @@ namespace TransformFlow
 			i += 1, j += 1;
 
 			// If we don't have enough confidence in our distribution of vertical feature points, we skip this bin.
-			if (a_distribution.number_of_samples() < 2 || b_distribution.number_of_samples() < 2)
+			if (a_distribution.number_of_samples() < 1 || b_distribution.number_of_samples() < 1)
 				continue;
 
 			auto difference = b_distribution.value() - a_distribution.value();
