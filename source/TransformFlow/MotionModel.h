@@ -9,7 +9,6 @@
 #ifndef TRANSFORM_FLOW_MOTION_MODEL_H
 #define TRANSFORM_FLOW_MOTION_MODEL_H
 
-#include <Dream/Resources/Loader.h>
 #include <Dream/Imaging/Image.h>
 
 #include <Euclid/Numerics/Vector.h>
@@ -82,25 +81,6 @@ namespace TransformFlow
 
 		Radians<> angle_of(RealT pixels = 1.0) const;
 		RealT pixels_of(Radians<> angle) const;
-	};
-
-	class SensorData : public Object
-	{
-		protected:
-			Ref<Resources::Loader> _loader;
-			
-			std::vector<Ref<Image>> _frames;
-			Ref<Image> frame_for_index(std::size_t index);
-
-			std::vector<Shared<SensorUpdate>> _sensor_updates;
-
-			void parse_log();
-
-		public:
-			SensorData(const Path & path);
-			virtual ~SensorData() noexcept;
-
-			const std::vector<Shared<SensorUpdate>> & sensor_updates() const { return _sensor_updates; }
 	};
 
 	/// A basic motion model interface. The output is gravity, bearing (rotation about gravity from north axis) and position.
