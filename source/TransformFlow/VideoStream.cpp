@@ -154,34 +154,32 @@ namespace TransformFlow {
 		_sensor_data = new SensorData(_loader);
 		
 		// This frame index is relating to the actual index of the frame data.
-		std::size_t frame_index = 1;
+		std::size_t frame_index = 0;
 		
 		for (auto & update : _sensor_data->sensor_updates()) {
 			// We process all updates in order, to calculate the information at specific video frames:
 			_motion_model->update(update.get());
 
 			if (Shared<ImageUpdate> image_update = update) {
-				// Skip frames which don't have appropriate 
-				if (!_motion_model->localization_valid()) continue;
-
 				VideoFrame video_frame;
-				
+
 				video_frame.index = frame_index;
-
 				video_frame.image_update = image_update;
-				video_frame.gravity = _motion_model->gravity().normalize();
-				video_frame.bearing = _motion_model->bearing();
-				video_frame.tilt = _motion_model->tilt();
+				video_frame.valid = _motion_model->localization_valid();
 
-				// Global coordinate system:
-				Vec3 down(0, -1, 0), north(0, 0, -1);
+				if (video_frame.valid) {
+					video_frame.gravity = _motion_model->gravity().normalize();
+					video_frame.bearing = _motion_model->bearing();
+					video_frame.tilt = _motion_model->tilt();
+
+					// Global coordinate system:
+					Vec3 down(0, -1, 0), north(0, 0, -1);
 				
-				Vec3 heading = Quat(rotate(video_frame.bearing, down)) * north;
-				video_frame.heading = heading.normalize();
+					Vec3 heading = Quat(rotate(video_frame.bearing, down)) * north;
+					video_frame.heading = heading.normalize();
 
-				video_frame.calculate_feature_points();
-
-				//log_debug("Video Frame", "Gravity", video_frame.gravity, "Bearing", video_frame.bearing);
+					video_frame.calculate_feature_points();
+				}
 
 				_frames.push_back(video_frame);
 				frame_index += 1;

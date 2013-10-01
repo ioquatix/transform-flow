@@ -56,6 +56,9 @@ namespace TransformFlow
 
 				Shared<ImageUpdate> image_update;
 
+				// Whether the localization was valid for this frame:
+				bool valid;
+
 				// In device coordinate space:
 				Vec3 gravity, heading;
 
