@@ -102,6 +102,11 @@ namespace TransformFlow {
 		{
 			return k % H;
 		}
+		
+		NumericT & at(std::size_t i)
+		{
+			return input[i % H];
+		}
 	};
 
 	template <typename NumericT>
@@ -130,7 +135,7 @@ namespace TransformFlow {
 			assert(offset.greater_than_or_equal({0, 0}));
 			assert(offset.less_than(image->size()));
 			
-			RealT intensity = Vec3(PixelT(image_reader[offset])).sum() / 3;
+			RealT intensity = Vec3(PixelT(image_reader[offset])).sum() / 3.0;
 			
 			Vec2 image_offset = offset;
 			image_offset[Y] = image->size()[HEIGHT] - image_offset[Y];
@@ -141,13 +146,14 @@ namespace TransformFlow {
 				auto & a = gradients.output[0];
 				auto & b = gradients.output[1]; // index
 
-				auto & ia = gradients.input[(index-((H-1) / 2)) % H];
-				auto & ib = gradients.input[index % H];
-				auto & ic = gradients.input[(index+((H-1) / 2)) % H];
+				auto ia = (gradients.at(index-2) + gradients.at(index-1)) / 2.0;
+				auto ib = gradients.at(index);
+				auto ic = (gradients.at(index+1) + gradients.at(index+2)) / 2.0;
+				
 				auto dab = (ib - ia), dbc = (ic - ib);
 				auto d = (dab*dab) + (dbc*dbc);
-				
-				if (d < 1000) return;
+
+				if (d < 400) return;
 
 				if (a != 0 && b == 0)
 				{
