@@ -133,6 +133,10 @@ namespace TransformFlow {
 	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
 		//AlignedBox2 image_box = AlignedBox2::from_origin_and_size(ZERO, image->size());
 
+		// We want the algorithm to work with the origin in the bottom left, not the top left.
+		start[Y] = (int)image->size()[HEIGHT] - start[Y];
+		end[Y] = (int)image->size()[HEIGHT] - end[Y];
+
 		const std::size_t H = 5;
 		typedef Vector<3, unsigned char> PixelT;
 		LaplacianGradients<RealT, H> gradients;
@@ -144,9 +148,14 @@ namespace TransformFlow {
 		bresenham_normalized_line(start, end, [&](const Vec2i & offset) {
 			//assert(offset.greater_than_or_equal({0, 0}));
 			//assert(offset.less_than(image->size()));
-			
+
 			RealT intensity = Vec3(PixelT(image_reader[offset])).sum() / 3.0;
-			offsets[gradients.index()] = offset;
+			//log_debug("pixel", Vec3(image_reader[offset]), intensity);
+
+			Vec2 image_offset = offset;
+			image_offset[Y] = image->size()[HEIGHT] - image_offset[Y];
+
+			offsets[gradients.index()] = image_offset;
 			
 			gradients.sum(intensity, [&](std::size_t index) {
 				auto & a = gradients.output[0];
