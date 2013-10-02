@@ -294,8 +294,25 @@ namespace TransformFlow
 
 		auto offset = cost.offset;
 
-		//if (bias != cost.offset)
-		//	log_debug("align", "sa", sa.size(), "sb", sb.size(), "estimate", estimate, "bias", bias, "cost offset", cost.offset, "error", cost.error);
+#ifdef DEBUG_ALIGNMENT
+		if (bias != cost.offset) {
+			log_debug("align", "sa", sa.size(), "sb", sb.size(), "estimate", estimate, "bias", bias, "cost offset", cost.offset, "error", cost.error);
+
+			std::cerr << "a.bins: ";
+			for (auto & bin : a.bins()) {
+				std::cerr << bin.links.size() << " ";
+			}
+			std::cerr << std::endl;
+
+			std::cerr << "b.bins: ";
+			for (auto & bin : b.bins()) {
+				std::cerr << bin.links.size() << " ";
+			}
+			std::cerr << std::endl;
+
+			cost = align_small(sa, sb, bias + estimate);
+		}
+#endif
 
 		Average<RealT> distribution;
 
