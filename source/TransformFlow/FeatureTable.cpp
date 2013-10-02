@@ -20,7 +20,7 @@ namespace TransformFlow {
 	FeatureTable::FeatureTable(RealT pixels_per_bin, const AlignedBox2 & bounds, const Radians<> & rotation) : _bounds(ZERO), _pixels_per_bin(pixels_per_bin)
 	{
 		// The bounds provided are the bounds of the image. Points are image coordinates, but this isn't suitable for binning. We want to bin along the axis perpendicular to gravity, so we make a rotation which does this. We also want to center the table at the origin, so we apply a translation.
-		_transform = rotate<Z>(rotation) << translate(-bounds.size() / 2);
+		_transform = rotate<Z>(rotation) << translate(-bounds.size() / 2.0);
 
 		// Calculate a new rotated bounding box:
 		_bounds.union_with_point(_transform * bounds.min());
@@ -28,21 +28,13 @@ namespace TransformFlow {
 		_bounds.union_with_point(_transform * bounds.corner({false, true}));
 		_bounds.union_with_point(_transform * bounds.corner({true, false}));
 
-		// Compute number of bins required:
-		std::size_t number_of_bins = (_bounds.size()[WIDTH] + (_pixels_per_bin - 1)) / _pixels_per_bin;
+		auto half_width = _bounds.size()[WIDTH] / 2.0;
+		auto bins_per_half_width = (half_width / _pixels_per_bin) + 1;
 
-		// We want an even number of bins so that the middle will always align:
-		if (number_of_bins & 1)
-			number_of_bins += 1;
+		std::size_t number_of_bins = bins_per_half_width * 2;
 
 		// Allocate the bins:
 		_bins.resize(number_of_bins);
-
-		auto first_bin_index = bin_index_for_offset(_bounds.min()[X]);
-		assert(first_bin_index == 0);
-
-		auto last_bin_index = bin_index_for_offset(_bounds.max()[X]);
-		assert(last_bin_index == _bins.size() - 1);
 	}
 
 	void FeatureTable::print_table(std::ostream & output)
@@ -112,17 +104,29 @@ namespace TransformFlow {
 
 	std::size_t FeatureTable::bin_index_for_offset(RealT x)
 	{
+		// Adventure Time:
+		auto b = x / _pixels_per_bin;
+		auto m = _bins.size() / 2;
+		auto o = b + m;
+
+		if (o == _bins.size())
+			o -= 1;
+
+		assert(o >= 0 && o < _bins.size());
+
+		return o;
+
 		// We are just concerned with horizontal offset relative to the bounding box:
-		auto f = (x - _bounds.min()[X]) / _bounds.size()[X];
-		assert(f >= 0 && f <= 1);
-		
+//		auto f = (x - _bounds.min()[X]) / _bounds.size()[X];
+//		assert(f >= 0 && f <= 1);
+
 		// Find the appropriate bin for the given offset:
-		std::size_t index = (_bins.size() / 2) + (f - 0.5) * _bins.size();
+//		std::size_t index = (_bins.size() / 2) + (f - 0.5) * _bins.size();
 
 		// The last bin is inclusive, e.g. f=1.0 -> index=size-1
-		if (index == _bins.size()) index = index - 1;
+//		if (index == _bins.size()) index = index - 1;
 
-		return index;
+//		return index;
 	}
 
 	void FeatureTable::update(const std::vector<Vec2> & offsets)
