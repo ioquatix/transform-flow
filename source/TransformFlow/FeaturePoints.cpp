@@ -167,7 +167,7 @@ namespace TransformFlow {
 
 				if (a != 0 && b == 0)
 				{
-					if (gradients.variance(index) < 400) return;
+					if (gradients.variance(index) < 600) return;
 
 					//assert(image_box.intersects_with(offsets[index % H]));
 					
@@ -176,14 +176,16 @@ namespace TransformFlow {
 				}
 				else if ((a < 0 && b > 0) || (b < 0 && a > 0))
 				{
-					if (gradients.variance(index) < 400) return;
+					if (gradients.variance(index) < 600) return;
 
 					// Midpoint between index-1 and index.
-					auto m = linear_interpolate<RealT>(midpoint(a, b), offsets[(index-1) % H], offsets[index % H]);
+					auto m = linear_interpolate<RealT>(0.5, offsets[(index-1) % H], offsets[index % H]);
 					
 					//assert(image_box.intersects_with(m));
 					
 					features.push_back(m);
+				} else {
+					return;
 				}
 			});
 		});
@@ -251,7 +253,7 @@ namespace TransformFlow {
 			}
 		}
 
-		_table = new FeatureTable(1, image_box, tilt);
+		_table = new FeatureTable(2, image_box, tilt);
 
 		_table->update(_offsets);
 
