@@ -15,9 +15,7 @@ namespace TransformFlow {
 	using namespace Dream::Events::Logging;
 	using namespace Euclid::Geometry;
 
-	// TODO: using std::function in tight loops is a bad idea.
-
-	template <typename F> //std::function<void(const Vec2i & offset)>
+	template <typename F>
 	static inline void bresenham_normalized_line(Vec2i start, Vec2i end, F callback)
 	{
 		bool steep = abs(end[Y] - start[Y]) > abs(end[X] - start[X]);
@@ -43,6 +41,42 @@ namespace TransformFlow {
 			ystep = 1;
 		
 		for (int x = start[X]; x < end[X]; x += 1) {
+			if (steep) {
+				callback({y, x});
+			} else {
+				callback({x, y});
+			}
+			
+			// Calculate the next step
+			error = error - dy;
+			
+			if (error < 0) {
+				y = y + ystep;
+				error = error + dx;
+			}
+		}
+	}
+
+	template <typename F>
+	static inline void bresenham_ordered_line(Vec2i start, Vec2i end, F callback)
+	{
+		bool steep = abs(end[Y] - start[Y]) > abs(end[X] - start[X]);
+		
+		if (steep) {
+			std::swap(start[X], start[Y]);
+			std::swap(end[X], end[Y]);
+		}
+		
+		int dx = abs(end[X] - start[X]);
+		int dy = abs(end[Y] - start[Y]);
+		int error = dx / 2;
+
+		int y = start[Y];
+
+		int ystep = start[Y] < end[Y] ? 1 : -1;
+		int increment = start[X] < end[X] ? 1 : -1;
+		
+		for (int x = start[X]; x != end[X]; x += increment) {
 			if (steep) {
 				callback({y, x});
 			} else {
