@@ -331,8 +331,10 @@ namespace TransformFlow
 			// Increment counters:
 			i += 1, j += 1;
 
+			const std::size_t T = 0;
+
 			// If we don't have enough confidence in our distribution of vertical feature points, we skip this bin.
-			if (a_distribution.number_of_samples() < 1 || b_distribution.number_of_samples() < 1)
+			if (a_distribution.number_of_samples() <= T || b_distribution.number_of_samples() <= T)
 				continue;
 
 			auto difference = b_distribution.value() - a_distribution.value();
