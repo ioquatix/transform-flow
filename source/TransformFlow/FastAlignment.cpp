@@ -275,14 +275,14 @@ namespace TransformFlow
 		//std::cerr << "a.bins: ";
 		for (auto & bin : a.bins()) {
 		//	std::cerr << bin.links.size() << " ";
-			sa.push_back(bin.links.size());
+			sa.push_back(bin.features.size());
 		}
 		//std::cerr << std::endl;
 
 		//std::cerr << "b.bins: ";
 		for (auto & bin : b.bins()) {
 		//	std::cerr << bin.links.size() << " ";
-			sb.push_back(bin.links.size());
+			sb.push_back(bin.features.size());
 		}
 		//std::cerr << std::endl;
 
@@ -325,22 +325,14 @@ namespace TransformFlow
 
 		while (i < a.bins().size() && j < b.bins().size())
 		{
-			auto a_distribution = a.average_chain_position(i);
-			auto b_distribution = b.average_chain_position(j);
+			auto bin_alignment = a.bin_alignment(b, i, j);
 
-			// Increment counters:
+			//log_debug("bin_alignment", bin_alignment.value(), "#", bin_alignment.number_of_samples());
+
+			if (bin_alignment.number_of_samples() > 0)
+				distribution.add_sample(bin_alignment.value());
+
 			i += 1, j += 1;
-
-			const std::size_t T = 0;
-
-			// If we don't have enough confidence in our distribution of vertical feature points, we skip this bin.
-			if (a_distribution.number_of_samples() <= T || b_distribution.number_of_samples() <= T)
-				continue;
-
-			auto difference = b_distribution.value() - a_distribution.value();
-			//log_debug("A", a_distribution.value(), "#", a_distribution.number_of_samples(), "B", b_distribution.value(), "#", b_distribution.number_of_samples(), "Difference", difference);
-			
-			distribution.add_sample(difference);
 		}
 
 		//log_debug("Calculated offset", distribution.value(), "#", distribution.number_of_samples());

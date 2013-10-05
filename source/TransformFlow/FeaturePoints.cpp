@@ -213,7 +213,7 @@ namespace TransformFlow {
 					if (gradients.variance(index) < 600) return;
 
 					// Midpoint between index-1 and index.
-					auto m = linear_interpolate<RealT>(0.5, offsets[(index-1) % H], offsets[index % H]);
+					auto m = linear_interpolate<RealT>(midpoint(b, a), offsets[(index-1) % H], offsets[index % H]);
 					
 					//assert(image_box.intersects_with(m));
 					
@@ -287,7 +287,7 @@ namespace TransformFlow {
 			}
 		}
 
-		_table = new FeatureTable(2, image_box, tilt);
+		_table = new FeatureTable(dy, 2, image_box, tilt);
 
 		_table->update(_offsets);
 

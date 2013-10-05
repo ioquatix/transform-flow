@@ -15,7 +15,6 @@
 #include <Euclid/Numerics/Average.h>
 
 #include <vector>
-#include <list>
 
 namespace TransformFlow
 {
@@ -30,37 +29,31 @@ namespace TransformFlow
 		struct Chain {
 			// Aligned offset is the offset in world coordinates. The offset itself is in pixel coordinates.
 			Vec2 aligned_offset, offset;
-			Chain * next;
 		};
 
 		struct Bin {
-			std::list<Chain> links;
+			std::vector<Chain> features;
 		};
 
 	protected:
 		Mat33 _transform;
 		AlignedBox2 _bounds;
+		const RealT _pixels_per_bin, _dy;
 
-		RealT _pixels_per_bin;
-
-		std::vector<Chain *> _chains;
 		std::vector<Bin> _bins;
 
-		void print_table(std::ostream & output);
-
-		Chain * find_previous_similar(Vec2 offset, std::size_t index);
-
 	public:
-		FeatureTable(RealT pixels_per_bin, const AlignedBox2 & bounds, const Radians<> & rotation);
+		FeatureTable(RealT dy, RealT pixels_per_bin, const AlignedBox2 & bounds, const Radians<> & rotation);
 
 		void update(const std::vector<Vec2> & offsets);
 
 		std::size_t bin_index_for_offset(RealT x);
 
-		const std::vector<Chain *> & chains() const { return _chains; }
 		const std::vector<Bin> & bins() const { return _bins; }
 		
 		Average<RealT> average_chain_position(std::size_t bin) const;
+
+		Average<RealT> bin_alignment(const FeatureTable & other, std::size_t i, std::size_t j) const;
 
 		// The estimate is in pixels, the default is usually sufficient.
 		Average<RealT> calculate_offset(const FeatureTable & other, int estimate = 0) const;
