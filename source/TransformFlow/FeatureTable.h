@@ -53,7 +53,8 @@ namespace TransformFlow
 		
 		Average<RealT> average_chain_position(std::size_t bin) const;
 
-		Average<RealT> bin_alignment(const FeatureTable & other, std::size_t i, std::size_t j) const;
+		Average<RealT> bin_alignment_sequential(const FeatureTable & other, std::size_t i, std::size_t j) const;
+		Average<RealT> bin_alignment_average(const FeatureTable & other, std::size_t i, std::size_t j) const;
 
 		// The estimate is in pixels, the default is usually sufficient.
 		Average<RealT> calculate_offset(const FeatureTable & other, int estimate = 0) const;

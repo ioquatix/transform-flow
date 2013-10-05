@@ -80,7 +80,7 @@ namespace TransformFlow {
 		return distribution;
 	}
 
-	Average<RealT> FeatureTable::bin_alignment(const FeatureTable & other, std::size_t i, std::size_t j) const
+	Average<RealT> FeatureTable::bin_alignment_sequential(const FeatureTable & other, std::size_t i, std::size_t j) const
 	{
 		std::size_t m = 0, n = 0;
 
@@ -89,7 +89,6 @@ namespace TransformFlow {
 
 		Average<RealT> alignment;
 
-		// We scale this by a small amount, perhaps to avoid floating point errors, etc.
 		const RealT dy = 0.9 * _dy;
 
 		while (m < a.size() && n < b.size()) {
@@ -114,6 +113,21 @@ namespace TransformFlow {
 		}
 
 		return alignment;
+	}
+
+	Average<RealT> FeatureTable::bin_alignment_average(const FeatureTable & other, std::size_t i, std::size_t j) const
+	{
+		auto pa = average_chain_position(i);
+		auto pb = other.average_chain_position(j);
+		
+		Average<RealT> average;
+		
+		auto t = _pixels_per_bin;
+		
+		if (pa.number_of_samples() > t && pb.number_of_samples() > t)
+			average.add_sample(pb.value() - pa.value());
+		
+		return average;
 	}
 
 	Average<RealT> FeatureTable::calculate_offset(const FeatureTable & other, int estimate) const

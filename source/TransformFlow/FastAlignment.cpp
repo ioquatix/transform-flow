@@ -325,7 +325,7 @@ namespace TransformFlow
 
 		while (i < a.bins().size() && j < b.bins().size())
 		{
-			auto bin_alignment = a.bin_alignment(b, i, j);
+			auto bin_alignment = a.bin_alignment_average(b, i, j);
 
 			//log_debug("bin_alignment", bin_alignment.value(), "#", bin_alignment.number_of_samples());
 
