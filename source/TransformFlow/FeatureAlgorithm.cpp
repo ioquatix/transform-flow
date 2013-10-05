@@ -33,7 +33,7 @@ namespace TransformFlow {
 	static void convert_to_greyscale(Ref<Image> pixel_buffer, cv::Mat & output) {
 		Vec3u size = pixel_buffer->size();
 		
-		cv::Mat color_frame(size[Y], size[X], CV_8UC4, (void*)pixel_buffer->data());
+		cv::Mat color_frame(size[Y], size[X], CV_8UC3, (void*)pixel_buffer->data());
 
 		output = cv::Mat(size[Y], size[X], CV_8UC1);
 		cv::cvtColor(color_frame, output, CV_RGB2GRAY);
@@ -41,9 +41,12 @@ namespace TransformFlow {
 
 	Vec2 MatchingAlgorithm::calculate_local_translation(const ImageUpdate & initial, const ImageUpdate & next) {
 		Vec3u size = initial.image_buffer->size();
-		
-		cv::Mat initial_frame(size[Y], size[X], CV_8UC4, (void*)initial.image_buffer->data());
-		cv::Mat next_frame(size[Y], size[X], CV_8UC4, (void*)next.image_buffer->data());
+
+		assert(initial.image_buffer->layout().channel_count() == 3);
+		assert(next.image_buffer->layout().channel_count() == 3);
+
+		cv::Mat initial_frame(size[Y], size[X], CV_8UC3, (void*)initial.image_buffer->data());
+		cv::Mat next_frame(size[Y], size[X], CV_8UC3, (void*)next.image_buffer->data());
 
 		std::clock_t start_time = std::clock();
 		std::vector<cv::KeyPoint> initial_keypoints;
@@ -61,7 +64,8 @@ namespace TransformFlow {
 
 		double feature_duration = double(features_time - start_time) / CLOCKS_PER_SEC;
 		double optical_flow_duration = double(flow_time - features_time) / CLOCKS_PER_SEC;
-		logger()->log(LOG_DEBUG, LogBuffer() << "Feature duration = " << feature_duration << " Optical flow duration = " << optical_flow_duration);
+
+		log_debug("Feature duration =", feature_duration, "Optical flow duration =", optical_flow_duration, "Feature points", initial_keypoints.size());
 
 		Vec2 total_translation(ZERO);
 		std::size_t samples = 0;
@@ -130,7 +134,7 @@ namespace TransformFlow {
 	}
 
 	Ref<MatchingAlgorithm> matchingAlgorithmUsingORB() {
-		Shared<cv::FeatureDetector> detector = new cv::OrbFeatureDetector;
+		Shared<cv::FeatureDetector> detector = new cv::OrbFeatureDetector(100);
 		Shared<cv::DescriptorExtractor> extractor = new cv::OrbDescriptorExtractor;
 		Shared<cv::DescriptorMatcher> matcher = new cv::BFMatcher(cv::NORM_HAMMING, true);
 
