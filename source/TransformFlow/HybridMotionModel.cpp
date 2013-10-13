@@ -23,40 +23,50 @@ namespace TransformFlow
 	{
 	}
 
+	RealT HybridMotionModel::History::calculate_estimate(const ImageUpdate & image_update, Radians<> current_relative_rotation) const
+	{
+		auto dr = current_relative_rotation - relative_rotation;
+		return image_update.pixels_of(dr);
+	}
+	
+	Average<RealT> HybridMotionModel::History::calculate_offset(Ptr<FeaturePoints> current_feature_points, const RealT & estimate) const
+	{
+		auto current_table = current_feature_points->table();
+		auto previous_table = feature_points->table();
+
+		return previous_table->calculate_offset(*current_table, -estimate);
+	}
+
+	RealT HybridMotionModel::History::calculate_bearing(const ImageUpdate & image_update, const Average<RealT> & offset) const
+	{
+		// The offset is measured in pixels, so we convert it to degrees and use it to rectify errors in the gyro/compass:
+		RealT image_bearing_offset = R2D * image_update.angle_of(offset.value());
+
+		return corrected_bearing + image_bearing_offset;
+	}
+
 	void HybridMotionModel::update(const ImageUpdate & image_update)
 	{
 		if (!BasicSensorMotionModel::localization_valid()) return;
 
 		Ref<FeaturePoints> current_feature_points = new FeaturePoints;
-		current_feature_points->scan(image_update.image_buffer, tilt());
+		current_feature_points->scan(image_update.image_buffer, tilt(), 10);
 
 		StringStreamT note;
 
-		if (_previous_feature_points)
+		if (_history.feature_points)
 		{
-			auto current_table = current_feature_points->table();
-			auto previous_table = _previous_feature_points->table();
-
-			auto dr = _relative_rotation - _previous_relative_rotation;
-			int estimate = image_update.pixels_of(dr);
-
-			note << "Estimated change = " << estimate << std::endl;
-
-			auto offset = previous_table->calculate_offset(*current_table, -estimate);
+			auto estimate = _history.calculate_estimate(image_update, _relative_rotation);
+			auto offset = _history.calculate_offset(current_feature_points, estimate);
 
 			// At least 3 vertical edges contributed to this sample:
+
 			if (offset.number_of_samples() >= 3) {
-				// This offset is measured in pixels, so we convert it to degrees and use it to rectify errors in the gyro/compass:
-				RealT image_bearing_offset = R2D * image_update.angle_of(offset.value());
-				
-				// This is the change computed by the sensors:
-				RealT sensor_bearing_offset = _bearing - _previous_bearing;
+				RealT image_bearing = _history.calculate_bearing(image_update, offset);
 
-				note << "Hybrid update (confidence = " << offset.number_of_samples() << "). Image: " << image_bearing_offset << " Gyroscope: " << sensor_bearing_offset << std::endl;
+				note << "Hybrid update (confidence = " << offset.number_of_samples() << "). Hybrid: " << (image_bearing - _history.corrected_bearing) << " Sensors: " << (_bearing - _previous_bearing) << std::endl;
 
-				//log_debug("bearing offset", bearing_offset, "actual offset", (_bearing - _previous_bearing));
-
-				auto updated_bearing = interpolateAnglesDegrees(_corrected_bearing + sensor_bearing_offset, _corrected_bearing + image_bearing_offset, 0.98);
+				auto updated_bearing = interpolateAnglesDegrees(_bearing, image_bearing, 0.995);
 
 				//log_debug("Bearing update", _bearing, "previous bearing", _previous_bearing, "updated bearing", updated_bearing, "bearing offset", bearing_offset, "pixel offset", offset.value());
 				_corrected_bearing = updated_bearing;
@@ -66,26 +76,28 @@ namespace TransformFlow
 				note << "Sensor update (confidence = " << offset.number_of_samples() << "). Gyroscope: " << (_bearing - _previous_bearing) << std::endl;
 			}
 
+			note << "Pixel estimate " << estimate << std::endl;
+
+			// Only update history if there is a signifcant change, otherwise keep tracking local frame of reference.
+			if (estimate < -5.0 || estimate > 5.0) {
+				note << "Updating tracking reference..." << std::endl;
+				_history = History{current_feature_points, _relative_rotation, _corrected_bearing};
+			}
+
 			image_update.add_note(note.str());
 		} else {
 			_corrected_bearing = _bearing;
+			
+			_history = History{current_feature_points, _relative_rotation, _corrected_bearing};
 		}
 
 		// Used to compute a hybrid update between purely sensor based update, or sensor+image based update:
 		_previous_bearing = _bearing;
-
-		// Used to calculate estimate rotation for image processing:
-		_previous_relative_rotation = _relative_rotation;
-
-		//log_debug("previous rotation", _previous_relative_rotation, "current rotation", _relative_rotation);
-
-		// Previous frame's feature points, kept around to match next frame based on estimate:
-		_previous_feature_points = current_feature_points;
 	}
 	
 	Radians<> HybridMotionModel::bearing() const
 	{
-		if (_previous_feature_points)
+		if (_history.feature_points)
 			return degrees(_corrected_bearing);
 		else
 			return BasicSensorMotionModel::bearing();
