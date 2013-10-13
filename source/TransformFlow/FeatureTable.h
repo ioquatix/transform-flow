@@ -21,18 +21,21 @@ namespace TransformFlow
 	using namespace Dream;
 	using namespace Euclid::Geometry;
 
-	class FeaturePoints;
-
 	class FeatureTable : public Object
 	{
 	public:
-		struct Chain {
+		struct Feature {
 			// Aligned offset is the offset in world coordinates. The offset itself is in pixel coordinates.
 			Vec2 aligned_offset, offset;
 		};
 
 		struct Bin {
-			std::vector<Chain> features;
+			std::vector<Feature> features;
+		};
+
+		struct Index {
+			std::size_t bin_index;
+			std::size_t feature_index;
 		};
 
 	protected:
@@ -42,16 +45,24 @@ namespace TransformFlow
 
 		std::vector<Bin> _bins;
 
+		Index add_feature(const Vec2 & offset);
+
 	public:
 		FeatureTable(RealT dy, RealT pixels_per_bin, const AlignedBox2 & bounds, const Radians<> & rotation);
+		virtual ~FeatureTable();
 
-		void update(const std::vector<Vec2> & offsets);
+		RealT dy() const { return _dy; };
+		RealT pixels_per_bin() const { return _pixels_per_bin; }
+
+		const AlignedBox2 & bounds() const { return _bounds; }
+
+		virtual void update(const std::vector<Vec2> & offsets);
 
 		std::size_t bin_index_for_offset(RealT x);
 
 		const std::vector<Bin> & bins() const { return _bins; }
-		
-		Average<RealT> average_chain_position(std::size_t bin) const;
+
+		Average<RealT> average_feature_position(std::size_t bin) const;
 
 		Average<RealT> bin_alignment_sequential(const FeatureTable & other, std::size_t i, std::size_t j) const;
 		Average<RealT> bin_alignment_average(const FeatureTable & other, std::size_t i, std::size_t j) const;

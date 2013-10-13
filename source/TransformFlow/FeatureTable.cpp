@@ -37,6 +37,10 @@ namespace TransformFlow {
 		_bins.resize(number_of_bins);
 	}
 
+	FeatureTable::~FeatureTable()
+	{
+	}
+
 	std::size_t FeatureTable::bin_index_for_offset(RealT x)
 	{
 		// Adventure Time:
@@ -52,22 +56,27 @@ namespace TransformFlow {
 		return o;
 	}
 
-	void FeatureTable::update(const std::vector<Vec2> & offsets)
+	FeatureTable::Index FeatureTable::add_feature(const Vec2 &offset)
 	{
-		for (auto offset : offsets)
-		{
-			// The aligned offset is the coordinate relative to the origin, with -Z = gravity.
-			auto aligned_offset = _transform * offset;
+		// The aligned offset is the coordinate relative to the origin, with -Z = gravity.
+		auto aligned_offset = _transform * offset;
 
-			auto index = bin_index_for_offset(aligned_offset[X]);
-			auto & bin = _bins.at(index);
+		auto index = bin_index_for_offset(aligned_offset[X]);
+		auto & bin = _bins.at(index);
 
-			// Add the chain link into the correct bin:
-			bin.features.push_back({aligned_offset, offset});
-		}
+		// Add the chain link into the correct bin:
+		bin.features.push_back({aligned_offset, offset});
+
+		return {index, bin.features.size() - 1};
 	}
 
-	Average<RealT> FeatureTable::average_chain_position(std::size_t bin) const
+	void FeatureTable::update(const std::vector<Vec2> &offsets)
+	{
+		for (auto & offset : offsets)
+			add_feature(offset);
+	}
+
+	Average<RealT> FeatureTable::average_feature_position(std::size_t bin) const
 	{
 		Average<RealT> distribution;
 		
@@ -117,8 +126,8 @@ namespace TransformFlow {
 
 	Average<RealT> FeatureTable::bin_alignment_average(const FeatureTable & other, std::size_t i, std::size_t j) const
 	{
-		auto pa = average_chain_position(i);
-		auto pb = other.average_chain_position(j);
+		auto pa = average_feature_position(i);
+		auto pb = other.average_feature_position(j);
 		
 		Average<RealT> average;
 		
