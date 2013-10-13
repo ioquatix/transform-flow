@@ -144,11 +144,23 @@ namespace TransformFlow {
 		NumericT & at(std::size_t i) { return input[i % H]; }
 		const NumericT & at(std::size_t i) const { return input[i % H]; }
 
-		RealT variance(const std::size_t & index) const
+		RealT variance_min_max(const std::size_t & index) const
+		{
+			RealT min = 255.0, max = 0.0;
+
+			for (int i = -2; i <= 2; i += 1) {
+				min = std::min(min, at(i+index));
+				max = std::max(max, at(i+index));
+			}
+
+			return (max - min);
+		}
+
+		RealT variance_left_right(const std::size_t & index) const
 		{
 			auto ia = (at(index-2) + at(index-1)) / 2.0;
 			auto ib = at(index);
-			auto ic = (at(index+1) + at(index+2)) / 2.0;
+			auto ic = (at(index+2) + at(index+1)) / 2.0;
 
 			auto dab = (ib - ia), dbc = (ic - ib);
 			auto d = (dab*dab) + (dbc*dbc);
@@ -156,6 +168,37 @@ namespace TransformFlow {
 			return d;
 		}
 
+		RealT variance_min(const std::size_t & index) const
+		{
+			auto ia = (at(index-2) + at(index-1)) / 2.0;
+			auto ic = (at(index+2) + at(index+1)) / 2.0;
+
+			auto dac = (ic - ia);
+
+			return fabsf(dac);
+		}
+
+		RealT variance_edge_to_edge(const std::size_t & index) const
+		{
+			const int K = (H-1) / 2;
+
+			// Normal pixel difference
+			auto ia = at(index-K);
+			auto ic = at(index+K);
+
+			auto dac = (ic - ia);
+
+			return fabsf(dac);
+		}
+
+		bool good_edge(const std::size_t & index) const
+		{
+			//return variance_min(index) > 30;
+			//return variance_edge_to_edge(index) > 20;
+			
+			// Found this to be the most robust:
+			return variance_left_right(index) >= 600;
+		}
 	};
 
 	template <typename NumericT>
@@ -203,7 +246,7 @@ namespace TransformFlow {
 
 				if (a != 0 && b == 0)
 				{
-					if (gradients.variance(index) < 600) return;
+					if (gradients.good_edge(index) == false) return;
 
 					//assert(image_box.intersects_with(offsets[index % H]));
 					
@@ -212,7 +255,7 @@ namespace TransformFlow {
 				}
 				else if ((a < 0 && b > 0) || (b < 0 && a > 0))
 				{
-					if (gradients.variance(index) < 600) return;
+					if (gradients.good_edge(index) == false) return;
 
 					// Midpoint between index-1 and index.
 					auto m = linear_interpolate<RealT>(midpoint(a, b), offsets[(index-1) % H], offsets[index % H]);
