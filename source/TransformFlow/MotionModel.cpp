@@ -126,7 +126,7 @@ namespace TransformFlow
 	{
 		float sz = acos(Vec3(0, 0, -1).dot(gravity));
 		
-		if (sz <= 0.01) {
+		if (sz <= 0.05) {
 			return rotate<Z>(bearing);
 		} else {
 			Vec3 pyz = gravity, pxy = gravity;
@@ -150,7 +150,7 @@ namespace TransformFlow
 			return q << rotate<X>(-R90);
 		}
 	}
-	     
+	
 	Quat world_rotation(const Vec3 & gravity, Radians<> bearing)
 	{
 		Quat q = IDENTITY;

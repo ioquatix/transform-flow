@@ -60,10 +60,12 @@ namespace TransformFlow
 	
 		Quat q = IDENTITY;
 	
-		if (sz > 0.01) {
+		if (sz > 0.05) {
 			Vec3 s = cross_product(down, f);
 
 			q *= (Quat)rotate(radians(sz), s);
+		} else {
+			return bearing;
 		}
 
 		q *= (Quat)rotate<Z>(degrees(bearing));
