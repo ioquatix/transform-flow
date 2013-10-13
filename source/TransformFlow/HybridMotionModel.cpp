@@ -79,7 +79,7 @@ namespace TransformFlow
 			note << "Pixel estimate " << estimate << std::endl;
 
 			// Only update history if there is a signifcant change, otherwise keep tracking local frame of reference.
-			if (estimate < -5.0 || estimate > 5.0) {
+			if (estimate < -1.0 || estimate > 1.0) {
 				note << "Updating tracking reference..." << std::endl;
 				_history = History{current_feature_points, _relative_rotation, _corrected_bearing};
 			}
