@@ -45,7 +45,7 @@ namespace TransformFlow
 			auto offset = previous_table->calculate_offset(*current_table, -estimate);
 
 			// At least 3 vertical edges contributed to this sample:
-			if (offset.number_of_samples() >= 5) {
+			if (offset.number_of_samples() >= 3) {
 				// This offset is measured in pixels, so we convert it to degrees and use it to rectify errors in the gyro/compass:
 				RealT image_bearing_offset = R2D * image_update.angle_of(offset.value());
 				
