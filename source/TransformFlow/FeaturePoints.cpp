@@ -161,7 +161,9 @@ namespace TransformFlow {
 	template <typename NumericT>
 	NumericT midpoint(const NumericT & a, const NumericT b)
 	{
+		//return 0.5;
 		return -a / (b-a);
+		//return -b / (a-b);
 	}
 
 	void FeaturePoints::features_along_line(Ptr<Image> image, Vec2i start, Vec2i end, std::vector<Vec2> & features) {
@@ -213,7 +215,7 @@ namespace TransformFlow {
 					if (gradients.variance(index) < 600) return;
 
 					// Midpoint between index-1 and index.
-					auto m = linear_interpolate<RealT>(midpoint(b, a), offsets[(index-1) % H], offsets[index % H]);
+					auto m = linear_interpolate<RealT>(midpoint(a, b), offsets[(index-1) % H], offsets[index % H]);
 					
 					//assert(image_box.intersects_with(m));
 					
