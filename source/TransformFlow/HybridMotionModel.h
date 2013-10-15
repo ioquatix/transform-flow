@@ -19,7 +19,7 @@ namespace TransformFlow
 	class HybridMotionModel : public BasicSensorMotionModel
 	{
 	public:
-		HybridMotionModel();
+		HybridMotionModel(std::size_t dy = 15);
 		virtual ~HybridMotionModel();
 
 		virtual void update(const ImageUpdate & image_update);
@@ -27,6 +27,8 @@ namespace TransformFlow
 		virtual Radians<> bearing() const;
 
 	protected:
+		const std::size_t _dy;
+		
 		struct History
 		{
 			Ref<FeaturePoints> feature_points;

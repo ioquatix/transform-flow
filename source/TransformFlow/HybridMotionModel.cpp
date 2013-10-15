@@ -15,7 +15,7 @@ namespace TransformFlow
 {
 	using namespace Dream::Events::Logging;
 
-	HybridMotionModel::HybridMotionModel()
+	HybridMotionModel::HybridMotionModel(std::size_t dy) : _dy(dy)
 	{
 	}
 	
@@ -50,7 +50,7 @@ namespace TransformFlow
 		if (!BasicSensorMotionModel::localization_valid()) return;
 
 		Ref<FeaturePoints> current_feature_points = new FeaturePoints;
-		current_feature_points->scan(image_update.image_buffer, tilt(), 10);
+		current_feature_points->scan(image_update.image_buffer, tilt(), _dy);
 
 		StringStreamT note;
 
